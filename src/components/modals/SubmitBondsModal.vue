@@ -49,9 +49,11 @@
               :rowData="selectedBonds"
               :columnDefs="bondsColumns"
               :defaultColDef="defaultColDef"
+              :suppress-cell-focus="true"
               rowSelection="multiple"
               :rowMultiSelectWithClick="true"
               @selection-changed="handleBondsSelection"
+              @grid-ready="onBondsGridReady"
             />
           </a-card>
         </div>
@@ -172,7 +174,10 @@ const bondsColumns = ref([
   { 
     headerName: '', 
     field: 'selection', 
-    width: 40, 
+    width: 50,
+    maxWidth: 50,
+    minWidth: 50,
+    suppressSizeToFit: true,
     checkboxSelection: true,
     headerCheckboxSelection: true
   },
@@ -274,6 +279,11 @@ function handleCancel() {
 function handleSubmit() {
   console.log('Submit bonds', selectedBonds.value);
   modalStore.closeSubmitBondsModal();
+}
+
+// 添加grid-ready事件处理
+function onBondsGridReady(params: any) {
+  params.api.sizeColumnsToFit();
 }
 </script>
 

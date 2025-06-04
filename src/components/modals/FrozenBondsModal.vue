@@ -65,9 +65,11 @@
             :rowData="filteredBonds"
             :columnDefs="availableBondsColumns"
             :defaultColDef="defaultColDef"
+            :suppress-cell-focus="true"
             rowSelection="multiple"
             :rowMultiSelectWithClick="true"
             @selection-changed="handleAvailableBondsSelection"
+            @grid-ready="onAvailableBondsGridReady"
           />
           <div class="table-footer">
             <a-button @click="selectAllAvailableBonds">全选</a-button>
@@ -86,9 +88,11 @@
             :rowData="selectedBonds"
             :columnDefs="selectedBondsColumns"
             :defaultColDef="defaultColDef"
+            :suppress-cell-focus="true"
             rowSelection="multiple"
             :rowMultiSelectWithClick="true"
             @selection-changed="handleSelectedBondsSelection"
+            @grid-ready="onSelectedBondsGridReady"
           />
           <div class="table-footer">
             <a-button @click="selectAllSelectedBonds">全选</a-button>
@@ -108,7 +112,7 @@
               title="利率债冻券总量" 
               :value="rateDebtTotal" 
               :precision="2"
-              :formatter="value => formatAmount(value)"
+              :formatter="(value: any) => formatAmount(value)"
             />
           </a-col>
           <a-col :span="8">
@@ -116,7 +120,7 @@
               title="存单冻券总量" 
               :value="cdTotal" 
               :precision="2"
-              :formatter="value => formatAmount(value)"
+              :formatter="(value: any) => formatAmount(value)"
             />
           </a-col>
           <a-col :span="8">
@@ -124,7 +128,7 @@
               title="地方债冻券总量" 
               :value="localDebtTotal" 
               :precision="2"
-              :formatter="value => formatAmount(value)"
+              :formatter="(value: any) => formatAmount(value)"
             />
           </a-col>
         </a-row>
@@ -177,7 +181,10 @@ const availableBondsColumns = ref([
   { 
     headerName: '', 
     field: 'selection', 
-    width: 40, 
+    width: 50,
+    maxWidth: 50,
+    minWidth: 50,
+    suppressSizeToFit: true,
     checkboxSelection: true,
     headerCheckboxSelection: true
   },
@@ -227,7 +234,10 @@ const selectedBondsColumns = ref([
   { 
     headerName: '', 
     field: 'selection', 
-    width: 40, 
+    width: 50,
+    maxWidth: 50,
+    minWidth: 50,
+    suppressSizeToFit: true,
     checkboxSelection: true,
     headerCheckboxSelection: true
   },
@@ -393,6 +403,16 @@ function handleCancel() {
 function handleSave() {
   console.log('Save frozen bonds', selectedBonds.value);
   modalStore.closeFrozenBondsModal();
+}
+
+// 处理可选债券网格准备就绪
+function onAvailableBondsGridReady(params: any) {
+  params.api.sizeColumnsToFit();
+}
+
+// 处理已选债券网格准备就绪
+function onSelectedBondsGridReady(params: any) {
+  params.api.sizeColumnsToFit();
 }
 </script>
 

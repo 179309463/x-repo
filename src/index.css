@@ -1,3 +1,102 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 彻底移除ag-grid单元格的所有focus样式 */
+.ag-cell,
+.ag-cell-focus,
+.ag-cell.ag-cell-focus,
+.ag-cell-wrapper,
+.ag-cell-value,
+.ag-cell-inline-editing,
+.ag-cell-not-inline-editing {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* 专门针对包含editable-cell的单元格 */
+.ag-cell:has(.editable-cell),
+.ag-cell-focus:has(.editable-cell) {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* 可编辑单元格样式 */
+.editable-cell {
+  background-color: #fffbf0 !important;
+  padding: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.editable-cell .cell-input {
+  width: 100% !important;
+  height: 100% !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 2px !important;
+  outline: none !important;
+  background: transparent !important;
+  padding: 4px 6px !important;
+  font-size: 14px !important;
+  text-align: right !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+.editable-cell .cell-input:focus {
+  background-color: #fff !important;
+  border-color: #faad14 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.editable-cell .cell-input:hover {
+  border-color: #faad14 !important;
+}
+
+/* 已确认单元格样式 */
+.confirmed-cell {
+  display: block !important;
+  padding: 4px 8px !important;
+  background-color: #f6ffed !important;
+  color: #52c41a !important;
+  font-weight: 500 !important;
+  border-radius: 2px !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  text-align: right !important;
+  line-height: 28px !important;
+}
+
+/* ag-grid单元格内的已确认内容右对齐 */
+.ag-cell .confirmed-cell {
+  text-align: right !important;
+}
+
+span.confirmed-cell {
+  text-align: right !important;
+}
+
+/* 移除所有input的默认focus样式 */
+input[type="number"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ag-grid特定的focus移除 */
+.ag-theme-balham .ag-cell-focus,
+.ag-theme-alpine .ag-cell-focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}

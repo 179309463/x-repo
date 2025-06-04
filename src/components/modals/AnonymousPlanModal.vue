@@ -48,19 +48,21 @@
 import { computed } from 'vue';
 import { useModalStore } from '../../stores/modalStore';
 import { useDetailPanelStore } from '../../stores/detailPanelStore';
+import { useDataStore } from '../../stores/dataStore';
 import { formatAmount } from '../../utils/formatters';
 
 const modalStore = useModalStore();
 const detailStore = useDetailPanelStore();
+const dataStore = useDataStore();
 
 const isOpen = computed(() => modalStore.isAnonymousPlanModalOpen);
 const currentOrder = computed(() => detailStore.currentOrder);
 
 // 计算匿名计划数据
 const anonymousInquiryAmount = computed(() => currentOrder.value?.anonymousInquiryAmount || 0);
-const anonymousRateDebtFrozen = computed(() => (currentOrder.value?.rateDebtFrozenAmount || 0) * 0.25); // 示例：假设匿名计划占25%
-const anonymousCdFrozen = computed(() => (currentOrder.value?.cdFrozenAmount || 0) * 0.25);
-const anonymousLocalDebtFrozen = computed(() => (currentOrder.value?.localDebtFrozenAmount || 0) * 0.25);
+const anonymousRateDebtFrozen = computed(() => currentOrder.value?.rateDebtFrozenAmount || 0);
+const anonymousCdFrozen = computed(() => currentOrder.value?.cdFrozenAmount || 0);
+const anonymousLocalDebtFrozen = computed(() => currentOrder.value?.localDebtFrozenAmount || 0);
 
 function handleCancel() {
   modalStore.closeAnonymousPlanModal();
@@ -69,7 +71,28 @@ function handleCancel() {
 function handleConfirm() {
   // 处理确认逻辑
   console.log('Confirmed anonymous plan');
+  
+  // 更新订单的匿名计划数据和状态
+  if (currentOrder.value) {
+    // 更新4个匿名计划字段的值
+    dataStore.updateOrderAnonymousData(currentOrder.value.id, {
+      anonymousInquiryAmount: anonymousInquiryAmount.value,
+      rateDebtFrozenAmount: anonymousRateDebtFrozen.value,
+      cdFrozenAmount: anonymousCdFrozen.value,
+      localDebtFrozenAmount: anonymousLocalDebtFrozen.value
+    });
+    
+    // 更新订单的计划确认状态为已确认
+    dataStore.updateOrderPlanStatus(currentOrder.value.id, 'confirmed');
+  }
+  
+  // 关闭匿名计划弹窗
   modalStore.closeAnonymousPlanModal();
+  
+  // 如果侧滑面板是打开的，也要关闭它
+  if (detailStore.isDetailPanelOpen) {
+    detailStore.closeDetailPanel();
+  }
 }
 </script>
 

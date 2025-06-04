@@ -83,6 +83,34 @@ export const useDataStore = defineStore('data', () => {
     return undefined;
   }
 
+  function updateOrderPlanStatus(orderId: string, status: 'unconfirmed' | 'confirmed') {
+    const order = inquiryOrders.value.find(order => order.id === orderId);
+    if (order) {
+      order.planConfirmStatus = status;
+      
+      // 触发响应式更新，确保表格重新渲染
+      inquiryOrders.value = [...inquiryOrders.value];
+    }
+  }
+
+  function updateOrderAnonymousData(orderId: string, data: {
+    anonymousInquiryAmount: number;
+    rateDebtFrozenAmount: number;
+    cdFrozenAmount: number;
+    localDebtFrozenAmount: number;
+  }) {
+    const order = inquiryOrders.value.find(order => order.id === orderId);
+    if (order) {
+      order.anonymousInquiryAmount = data.anonymousInquiryAmount;
+      order.rateDebtFrozenAmount = data.rateDebtFrozenAmount;
+      order.cdFrozenAmount = data.cdFrozenAmount;
+      order.localDebtFrozenAmount = data.localDebtFrozenAmount;
+      
+      // 触发响应式更新
+      inquiryOrders.value = [...inquiryOrders.value];
+    }
+  }
+
   return {
     inquiryOrders,
     inquiryResults,
@@ -99,6 +127,8 @@ export const useDataStore = defineStore('data', () => {
     clearResultSelection,
     updateFilters,
     getOrderById,
-    getResultById
+    getResultById,
+    updateOrderPlanStatus,
+    updateOrderAnonymousData
   };
 });

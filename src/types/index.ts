@@ -1,6 +1,7 @@
 export interface InquiryOrder {
   id: string;
   fundName: string;
+  planConfirmStatus: 'unconfirmed' | 'confirmed';
   notInquiryAmount: number;
   inquiryAmount: number;
   anonymousInquiryAmount: number;

@@ -6,10 +6,12 @@
     
     <div class="card-body">
       <ag-grid-vue
+        ref="inquiryResultsGridRef"
         class="ag-theme-balham inquiry-results-grid"
         :rowData="dataStore.filteredInquiryResults"
         :columnDefs="columnDefs"
         :defaultColDef="defaultColDef"
+        :suppress-cell-focus="true"
         rowSelection="multiple"
         :rowMultiSelectWithClick="true"
         :suppressRowClickSelection="true"
@@ -17,8 +19,8 @@
         :treeData="true"
         :animateRows="true"
         :groupDefaultExpanded="1"
-        getDataPath="getDataPath"
         :getDataPath="getDataPath"
+        @grid-ready="onGridReady"
       />
     </div>
     
@@ -82,7 +84,10 @@ const columnDefs = ref([
   { 
     headerName: '', 
     field: 'selection', 
-    width: 40, 
+    width: 50,
+    maxWidth: 50,
+    minWidth: 50,
+    suppressSizeToFit: true,
     checkboxSelection: true,
     headerCheckboxSelection: true
   },
@@ -246,6 +251,10 @@ function openSplitTradeModal() {
 
 function openAddSubOrderModal() {
   modalStore.openAddSubOrderModal();
+}
+
+function onGridReady(params: any) {
+  params.api.sizeColumnsToFit();
 }
 </script>
 

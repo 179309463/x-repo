@@ -4,7 +4,18 @@
 
 class="card-body",给这个card-body一个padding:8px
 
-```
+这个padding，改为16px
+
+当前浏览器选中的元素，改为紧凑一些的descriptions
+
+当前浏览器选中的元素，那个panel-footer，需要调整：
+1）应该固定在侧滑面板的底部
+2）冻券维护按钮，应该在左侧；匿名计划确认按钮，应该在右侧
+
+panel-footer-sticky这个，不要padding：16px 0，去掉这个padding
+
+当前浏览器选中元素，就是这个panel-footer-sticky，并没有真正的固定的侧滑面板的底部，不正确
+
 Deprecation Warning [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
 
 More info and automated migrator: https://sass-lang.com/d/import

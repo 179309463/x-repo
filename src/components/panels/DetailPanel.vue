@@ -10,7 +10,31 @@
         </div>
         
         <div class="panel-body wide" v-if="currentOrder">
-          <a-descriptions title="基础信息" :column="1" bordered>
+          <div class="section-header">
+            <h4 class="section-title">基础信息</h4>
+            <div class="navigation-buttons">
+              <a-button 
+                type="text" 
+                size="small"
+                :disabled="!detailStore.hasPreviousOrder"
+                @click="detailStore.goToPreviousOrder"
+                title="上一个询价指令"
+              >
+                <template #icon><left-outlined /></template>
+              </a-button>
+              <a-button 
+                type="text" 
+                size="small"
+                :disabled="!detailStore.hasNextOrder"
+                @click="detailStore.goToNextOrder"
+                title="下一个询价指令"
+              >
+                <template #icon><right-outlined /></template>
+              </a-button>
+            </div>
+          </div>
+          
+          <a-descriptions :column="1" bordered>
             <a-descriptions-item label="基金名称">
               {{ currentOrder.fundName }}
             </a-descriptions-item>
@@ -31,8 +55,8 @@
               <a-form-item label="询价金额(匿名计划)">
                 <a-input-number 
                   v-model:value="anonymousInquiryAmount" 
-                  :formatter="value => `${formatAmount(value)}`"
-                  :parser="value => parseFloat(value.replace(/[^\d.]/g, ''))"
+                  :formatter="(value: any) => `${formatAmount(value)}`"
+                  :parser="(value: any) => parseFloat(value.replace(/[^\d.]/g, ''))"
                   class="w-full"
                 />
               </a-form-item>
@@ -40,8 +64,8 @@
               <a-form-item label="利率债冻券量(匿名)">
                 <a-input-number 
                   v-model:value="anonymousRateDebtFrozen" 
-                  :formatter="value => `${formatAmount(value)}`"
-                  :parser="value => parseFloat(value.replace(/[^\d.]/g, ''))"
+                  :formatter="(value: any) => `${formatAmount(value)}`"
+                  :parser="(value: any) => parseFloat(value.replace(/[^\d.]/g, ''))"
                   class="w-full"
                 />
               </a-form-item>
@@ -49,8 +73,8 @@
               <a-form-item label="存单计划冻券量(匿名)">
                 <a-input-number 
                   v-model:value="anonymousCdFrozen" 
-                  :formatter="value => `${formatAmount(value)}`"
-                  :parser="value => parseFloat(value.replace(/[^\d.]/g, ''))"
+                  :formatter="(value: any) => `${formatAmount(value)}`"
+                  :parser="(value: any) => parseFloat(value.replace(/[^\d.]/g, ''))"
                   class="w-full"
                 />
               </a-form-item>
@@ -58,8 +82,8 @@
               <a-form-item label="地方债冻券量(匿名)">
                 <a-input-number 
                   v-model:value="anonymousLocalDebtFrozen" 
-                  :formatter="value => `${formatAmount(value)}`"
-                  :parser="value => parseFloat(value.replace(/[^\d.]/g, ''))"
+                  :formatter="(value: any) => `${formatAmount(value)}`"
+                  :parser="(value: any) => parseFloat(value.replace(/[^\d.]/g, ''))"
                   class="w-full"
                 />
               </a-form-item>
@@ -67,14 +91,14 @@
           </div>
           
           <div class="panel-footer sticky">
-            <a-space>
-              <a-button type="primary" @click="confirmAnonymousPlan">
-                匿名计划确认
-              </a-button>
+            <div class="footer-buttons">
               <a-button @click="openFrozenBondsModal">
                 冻券维护
               </a-button>
-            </a-space>
+              <a-button type="primary" @click="confirmAnonymousPlan">
+                匿名计划确认
+              </a-button>
+            </div>
           </div>
         </div>
       </div>
@@ -83,8 +107,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { CloseOutlined } from '@ant-design/icons-vue';
+import { ref, computed, onMounted, watch } from 'vue';
+import { CloseOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons-vue';
 import { useDetailPanelStore } from '../../stores/detailPanelStore';
 import { useModalStore } from '../../stores/modalStore';
 import { formatAmount } from '../../utils/formatters';
@@ -107,14 +131,25 @@ const anonymousRateDebtFrozen = ref(0);
 const anonymousCdFrozen = ref(0);
 const anonymousLocalDebtFrozen = ref(0);
 
+// 更新表单数据的函数
+function updateFormData() {
+  if (currentOrder.value) {
+    // 匿名计划数据初始化为0，需要用户手动填写
+    anonymousInquiryAmount.value = currentOrder.value.anonymousInquiryAmount || 0;
+    anonymousRateDebtFrozen.value = 0;
+    anonymousCdFrozen.value = 0;
+    anonymousLocalDebtFrozen.value = 0;
+  }
+}
+
+// 监听currentOrder变化，自动更新表单数据
+watch(currentOrder, () => {
+  updateFormData();
+}, { immediate: true });
+
 // 初始化表单数据
 onMounted(() => {
-  if (currentOrder.value) {
-    anonymousInquiryAmount.value = currentOrder.value.anonymousInquiryAmount;
-    anonymousRateDebtFrozen.value = currentOrder.value.rateDebtFrozenAmount * 0.25; // 示例：假设匿名计划占25%
-    anonymousCdFrozen.value = currentOrder.value.cdFrozenAmount * 0.25;
-    anonymousLocalDebtFrozen.value = currentOrder.value.localDebtFrozenAmount * 0.25;
-  }
+  updateFormData();
 });
 
 // 关闭面板
@@ -146,7 +181,7 @@ function openFrozenBondsModal() {
   position: absolute;
   top: 0;
   right: 0;
-  width: 600px;
+  width: 375px;
   height: 100%;
   background-color: #fff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
@@ -163,6 +198,7 @@ function openFrozenBondsModal() {
     top: 0;
     background: #fff;
     z-index: 1;
+    flex-shrink: 0;
     
     h3 {
       margin: 0;
@@ -174,7 +210,34 @@ function openFrozenBondsModal() {
   .panel-body {
     flex: 1;
     padding: 16px;
+    padding-bottom: 81px; // 为固定底部留出空间 (65px高度 + 16px padding)
     overflow-y: auto;
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      
+      .section-title {
+        font-size: $font-size-base;
+        font-weight: 500;
+        margin: 0;
+      }
+      
+      .navigation-buttons {
+        display: flex;
+        align-items: center;
+        
+        .ant-btn {
+          margin-left: 4px;
+          
+          &:disabled {
+            opacity: 0.3;
+          }
+        }
+      }
+    }
     
     .anonymous-plan-section {
       margin-top: 16px;
@@ -188,14 +251,20 @@ function openFrozenBondsModal() {
   }
   
   .panel-footer.sticky {
-    padding: 16px;
-    border-top: 1px solid $border-color-split;
-    display: flex;
-    justify-content: flex-end;
-    position: sticky;
+    position: absolute;
     bottom: 0;
+    left: 0;
+    right: 0;
+    border-top: 1px solid $border-color-split;
     background: #fff;
     z-index: 1;
+    flex-shrink: 0;
+    
+    .footer-buttons {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px;
+    }
   }
 }
 
