@@ -59,9 +59,27 @@ const columnDefs = ref([
     maxWidth: 50,
     minWidth: 50,
     suppressSizeToFit: true,
-    checkboxSelection: true,
-    headerCheckboxSelection: true,
-    pinned: 'left'
+    checkboxSelection: (params: any) => {
+      // 只有已确认状态的记录才显示复选框
+      return params.data.planConfirmStatus === 'confirmed';
+    },
+    headerCheckboxSelection: (params: any) => {
+      // 头部复选框只控制已确认的记录
+      return true;
+    },
+    headerCheckboxSelectionFilteredOnly: true,
+    pinned: 'left',
+    cellStyle: (params: any) => {
+      // 未确认状态的行显示为禁用样式
+      if (params.data.planConfirmStatus !== 'confirmed') {
+        return { 
+          backgroundColor: '#f5f5f5',
+          opacity: 0.6,
+          cursor: 'not-allowed'
+        };
+      }
+      return {};
+    }
   },
   { 
     headerName: '基金名称',
