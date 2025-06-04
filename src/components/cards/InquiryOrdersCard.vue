@@ -207,6 +207,10 @@ onMounted(() => {
   }
 }
 
+.card-body {
+  padding: 16px;
+}
+
 :deep(.action-cell) {
   padding: 0 !important;
   
