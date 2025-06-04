@@ -189,6 +189,10 @@ export const useDataStore = defineStore('data', () => {
         };
         
         inquiryResults.value.push(newResult);
+        
+        // 触发询价结果的响应式更新
+        inquiryResults.value = [...inquiryResults.value];
+        
         saveToStorage(STORAGE_KEYS.INQUIRY_RESULTS, inquiryResults.value);
       }
       

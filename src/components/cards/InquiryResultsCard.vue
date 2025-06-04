@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import { 
   CalculatorOutlined,
@@ -80,6 +80,35 @@ import { formatAmount, formatRate, formatDate, getStatusClass, getOrderTypeClass
 
 const dataStore = useDataStore();
 const modalStore = useModalStore();
+
+// AG-Grid 实例引用
+const inquiryResultsGridRef = ref<InstanceType<typeof AgGridVue> | null>(null);
+
+// 监听询价结果数据变化，实时刷新表格
+watch(
+  () => dataStore.inquiryResults,
+  () => {
+    nextTick(() => {
+      if (inquiryResultsGridRef.value && inquiryResultsGridRef.value.api) {
+        inquiryResultsGridRef.value.api.setRowData(dataStore.filteredInquiryResults);
+      }
+    });
+  },
+  { deep: true }
+);
+
+// 监听过滤结果变化
+watch(
+  () => dataStore.filteredInquiryResults,
+  (newData) => {
+    nextTick(() => {
+      if (inquiryResultsGridRef.value && inquiryResultsGridRef.value.api) {
+        inquiryResultsGridRef.value.api.setRowData(newData);
+      }
+    });
+  },
+  { deep: true }
+);
 
 // 动态标题
 const dynamicTitle = computed(() => {
