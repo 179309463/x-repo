@@ -16,6 +16,10 @@ body {
   --ag-selected-row-background-color: #e6f7ff;
   --ag-row-hover-color: #f5f5f5;
   --ag-cell-horizontal-padding: 8px;
+  --ag-header-column-separator-display: block;
+  --ag-header-column-separator-height: 100%;
+  --ag-header-column-separator-width: 1px;
+  --ag-header-column-separator-color: #f0f0f0;
   
   .ag-row {
     border-bottom: 1px solid #f0f0f0;
@@ -33,6 +37,16 @@ body {
   
   .ag-header-cell {
     padding: 8px;
+    line-height: 20px;
+    
+    .ag-header-cell-text {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: normal;
+      word-break: break-all;
+      line-height: 1.2;
+      padding: 4px 0;
+    }
   }
 }
 
