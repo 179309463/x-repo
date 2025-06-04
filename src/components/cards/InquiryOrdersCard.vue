@@ -33,6 +33,8 @@
         @row-clicked="handleRowClick"
         @selection-changed="handleSelectionChanged"
         @grid-ready="onGridReady"
+        :enableColResize="true"
+        :suppressHorizontalScroll="false"
       />
     </div>
   </div>
@@ -76,6 +78,8 @@ const columnDefs = ref([
     },
     headerCheckboxSelectionFilteredOnly: true,
     pinned: 'left',
+    lockPosition: true, // 锁定位置，防止移动
+    suppressMovable: true, // 禁止拖拽移动
     cellStyle: (params: any) => {
       // 未确认状态的行显示为禁用样式
       if (params.data.planConfirmStatus !== 'confirmed') {
@@ -241,7 +245,8 @@ const columnDefs = ref([
 // 默认列设置
 const defaultColDef = {
   sortable: true,
-  resizable: true
+  resizable: true,
+  suppressMovable: false // 允许普通列移动，固定列由单独配置控制
 };
 
 // 处理行点击事件
@@ -386,6 +391,7 @@ function refreshData() {
       orderSequence: `XR${Date.now()}${String(i).padStart(3, '0')}`
     };
     
+    // 只添加新的询价指令，不影响询价结果
     dataStore.addNewOrder(newOrder);
   }
   
@@ -397,6 +403,16 @@ function refreshData() {
 .inquiry-orders-grid {
   height: 100%;
   width: 100%;
+  
+  // 确保固定列正常显示
+  :deep(.ag-pinned-left-cols-container) {
+    border-right: 1px solid #e6e6e6;
+  }
+  
+  :deep(.ag-cell.ag-cell-pinned-left) {
+    background-color: #fafafa;
+    border-right: 1px solid #e6e6e6;
+  }
 }
 
 .card-header {
