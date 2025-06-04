@@ -10,6 +10,12 @@
             <a-checkbox v-model:checked="filters.showOtherTraders">显示其他资金交易员</a-checkbox>
           </a-space>
         </div>
+        <div class="header-actions">
+          <a-button type="primary" ghost @click="refreshData">
+            <template #icon><reload-outlined /></template>
+            刷新数据
+          </a-button>
+        </div>
       </div>
     </div>
     
@@ -35,6 +41,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
+import { ReloadOutlined } from '@ant-design/icons-vue';
 import { useDataStore } from '../../stores/dataStore';
 import { useDetailPanelStore } from '../../stores/detailPanelStore';
 import { useModalStore } from '../../stores/modalStore';
@@ -341,6 +348,49 @@ const inquiryOrdersGridRef = ref(null);
 function onGridReady(params: any) {
   params.api.sizeColumnsToFit();
 }
+
+function refreshData() {
+  // 随机生成1-2条新的待确认询价指令记录
+  const newRecordsCount = Math.floor(Math.random() * 2) + 1; // 1-2条记录
+  
+  const fundNames = [
+    '中欧价值发现混合A',
+    '华夏红利混合型基金',
+    '南方成长先锋混合A',
+    '博时主题行业混合',
+    '嘉实新兴产业股票型',
+    '富国城镇发展股票型',
+    '广发核心精选混合A',
+    '易方达消费行业股票'
+  ];
+  
+  const traders = ['张三', '李四', '王五', '赵六', '孙七', '周八'];
+  
+  for (let i = 0; i < newRecordsCount; i++) {
+    const newOrder = {
+      id: `new_${Date.now()}_${i}`,
+      fundName: fundNames[Math.floor(Math.random() * fundNames.length)],
+      planConfirmStatus: 'unconfirmed' as const,
+      notInquiryAmount: Math.floor(Math.random() * 50000) + 10000, // 1万-6万
+      inquiryAmount: 0,
+      anonymousInquiryAmount: 0,
+      anonymousNotInquiryAmount: 0,
+      rateDebtFrozenAmount: 0,
+      cdFrozenAmount: 0,
+      localDebtFrozenAmount: 0,
+      listedAmount: 0,
+      pendingBondsAmount: 0,
+      completedAmount: 0,
+      t0MaxBorrowAmount: Math.floor(Math.random() * 100000) + 50000, // 5万-15万
+      trader: traders[Math.floor(Math.random() * traders.length)],
+      orderSequence: `XR${Date.now()}${String(i).padStart(3, '0')}`
+    };
+    
+    dataStore.addNewOrder(newOrder);
+  }
+  
+  console.log(`已刷新并新增 ${newRecordsCount} 条询价指令记录`);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -356,19 +406,29 @@ function onGridReady(params: any) {
   .header-content {
     display: flex;
     align-items: center;
-    gap: 24px;
+    width: 100%;
     
     .card-title {
       font-size: 16px;
       font-weight: 500;
       margin: 0;
       white-space: nowrap;
+      margin-right: 40px;
     }
     
     .header-controls {
       flex: 1;
       display: flex;
       align-items: center;
+      
+      // 窄屏幕下隐藏筛选复选框
+      @media (max-width: 1200px) {
+        display: none;
+      }
+    }
+    
+    .header-actions {
+      margin-left: auto;
     }
   }
 }

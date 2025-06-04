@@ -3,10 +3,40 @@ import { ref, computed } from 'vue';
 import type { InquiryOrder, InquiryResult, FilterState } from '../types';
 import { mockInquiryOrders, mockInquiryResults } from '../mock/mockData';
 
+// localStorage 键名
+const STORAGE_KEYS = {
+  INQUIRY_ORDERS: 'x-repo-inquiry-orders',
+  INQUIRY_RESULTS: 'x-repo-inquiry-results'
+};
+
+// 从localStorage加载数据
+function loadFromStorage<T>(key: string, defaultValue: T): T {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : defaultValue;
+  } catch (error) {
+    console.warn(`Failed to load ${key} from localStorage:`, error);
+    return defaultValue;
+  }
+}
+
+// 保存数据到localStorage
+function saveToStorage<T>(key: string, data: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.warn(`Failed to save ${key} to localStorage:`, error);
+  }
+}
+
 export const useDataStore = defineStore('data', () => {
-  // 状态
-  const inquiryOrders = ref<InquiryOrder[]>([...mockInquiryOrders]);
-  const inquiryResults = ref<InquiryResult[]>([...mockInquiryResults]);
+  // 状态 - 从localStorage加载初始数据
+  const inquiryOrders = ref<InquiryOrder[]>(
+    loadFromStorage(STORAGE_KEYS.INQUIRY_ORDERS, [...mockInquiryOrders])
+  );
+  const inquiryResults = ref<InquiryResult[]>(
+    loadFromStorage(STORAGE_KEYS.INQUIRY_RESULTS, [...mockInquiryResults])
+  );
   const selectedOrderIds = ref<string[]>([]);
   const selectedResultIds = ref<string[]>([]);
   const filters = ref<FilterState>({
@@ -90,6 +120,9 @@ export const useDataStore = defineStore('data', () => {
       
       // 触发响应式更新，确保表格重新渲染
       inquiryOrders.value = [...inquiryOrders.value];
+      
+      // 保存到localStorage
+      saveToStorage(STORAGE_KEYS.INQUIRY_ORDERS, inquiryOrders.value);
     }
   }
 
@@ -108,7 +141,33 @@ export const useDataStore = defineStore('data', () => {
       
       // 触发响应式更新
       inquiryOrders.value = [...inquiryOrders.value];
+      
+      // 保存到localStorage
+      saveToStorage(STORAGE_KEYS.INQUIRY_ORDERS, inquiryOrders.value);
     }
+  }
+
+  function addNewOrder(newOrder: InquiryOrder) {
+    inquiryOrders.value.push(newOrder);
+    
+    // 触发响应式更新
+    inquiryOrders.value = [...inquiryOrders.value];
+    
+    // 保存到localStorage
+    saveToStorage(STORAGE_KEYS.INQUIRY_ORDERS, inquiryOrders.value);
+  }
+
+  function clearStorage() {
+    localStorage.removeItem(STORAGE_KEYS.INQUIRY_ORDERS);
+    localStorage.removeItem(STORAGE_KEYS.INQUIRY_RESULTS);
+    
+    // 重置为初始数据
+    inquiryOrders.value = [...mockInquiryOrders];
+    inquiryResults.value = [...mockInquiryResults];
+    
+    // 保存重置后的数据
+    saveToStorage(STORAGE_KEYS.INQUIRY_ORDERS, inquiryOrders.value);
+    saveToStorage(STORAGE_KEYS.INQUIRY_RESULTS, inquiryResults.value);
   }
 
   return {
@@ -129,6 +188,8 @@ export const useDataStore = defineStore('data', () => {
     getOrderById,
     getResultById,
     updateOrderPlanStatus,
-    updateOrderAnonymousData
+    updateOrderAnonymousData,
+    addNewOrder,
+    clearStorage
   };
 });

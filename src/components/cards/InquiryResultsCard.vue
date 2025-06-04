@@ -213,7 +213,7 @@ const defaultColDef = {
 };
 
 // 处理数据路径（树形表格）
-function getDataPath(data: any) {
+function getDataPath(data: any): string[] {
   return data.parentId ? [data.fundName, data.fundName + '-' + data.id] : [data.fundName];
 }
 
@@ -253,7 +253,7 @@ function openAddSubOrderModal() {
   modalStore.openAddSubOrderModal();
 }
 
-function onGridReady(params: any) {
+function onGridReady(params: any): void {
   params.api.sizeColumnsToFit();
 }
 </script>
@@ -282,13 +282,15 @@ function onGridReady(params: any) {
   
   .action-buttons {
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
+    align-items: center;
     flex-wrap: wrap;
     gap: 8px;
     
     :deep(.ant-space) {
       flex-wrap: wrap;
       gap: 8px;
+      justify-content: center;
     }
   }
 }
