@@ -5,7 +5,7 @@ export const mockInquiryOrders: InquiryOrder[] = [
   {
     id: '1',
     fundName: '优选增强债券型',
-    planConfirmStatus: 'unconfirmed',
+    planConfirmStatus: 'confirmed',
     notInquiryAmount: 100000000,
     inquiryAmount: 50000000,
     anonymousInquiryAmount: 0,

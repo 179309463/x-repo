@@ -34,8 +34,9 @@ export const useDataStore = defineStore('data', () => {
   const inquiryOrders = ref<InquiryOrder[]>(
     loadFromStorage(STORAGE_KEYS.INQUIRY_ORDERS, [...mockInquiryOrders])
   );
+  // 询价结果初始为空，只有确认后才会有数据
   const inquiryResults = ref<InquiryResult[]>(
-    loadFromStorage(STORAGE_KEYS.INQUIRY_RESULTS, [...mockInquiryResults])
+    loadFromStorage(STORAGE_KEYS.INQUIRY_RESULTS, [])
   );
   const selectedOrderIds = ref<string[]>([]);
   const selectedResultIds = ref<string[]>([]);
@@ -45,13 +46,63 @@ export const useDataStore = defineStore('data', () => {
     showOtherTraders: false
   });
 
+  // 初始化询价结果的函数
+  function initializeInquiryResults() {
+    // 为所有已确认的订单创建询价结果记录
+    const confirmedOrders = inquiryOrders.value.filter(order => order.planConfirmStatus === 'confirmed');
+    
+    confirmedOrders.forEach(order => {
+      const existingResult = inquiryResults.value.find(result => result.id === `result_${order.id}`);
+      
+      if (!existingResult) {
+        const newResult: InquiryResult = {
+          id: `result_${order.id}`,
+          fundName: order.fundName,
+          dealAmount: order.anonymousInquiryAmount || 0,
+          repoAmount: order.anonymousInquiryAmount || 0,
+          repoRate: 2.5 + Math.random() * 2, // 随机利率 2.5-4.5%
+          contractName: '交易所质押式回购',
+          orderType: 'buy',
+          tradeDate: new Date().toISOString().split('T')[0],
+          ourTrader: order.trader,
+          orderStatus: 'confirmed',
+          inquiryStatus: 'inquiring',
+          tradeStatus: 'not_completed',
+          counterparty: '待匹配'
+        };
+        
+        inquiryResults.value.push(newResult);
+      }
+    });
+  }
+
+  // 初始化询价结果数据
+  if (inquiryResults.value.length === 0) {
+    initializeInquiryResults();
+    saveToStorage(STORAGE_KEYS.INQUIRY_RESULTS, inquiryResults.value);
+  }
+
   // 计算属性
   const filteredInquiryOrders = computed(() => {
     return inquiryOrders.value;
   });
 
+  // 根据选中的询价指令过滤询价结果
   const filteredInquiryResults = computed(() => {
-    return inquiryResults.value;
+    if (selectedOrderIds.value.length === 0) {
+      // 无选择时显示所有结果
+      return inquiryResults.value;
+    }
+    
+    // 获取选中订单的基金名称
+    const selectedFundNames = inquiryOrders.value
+      .filter(order => selectedOrderIds.value.includes(order.id))
+      .map(order => order.fundName);
+    
+    // 过滤出对应基金名称的结果
+    return inquiryResults.value.filter(result => 
+      selectedFundNames.includes(result.fundName)
+    );
   });
 
   // 方法
@@ -116,7 +167,30 @@ export const useDataStore = defineStore('data', () => {
   function updateOrderPlanStatus(orderId: string, status: 'unconfirmed' | 'confirmed') {
     const order = inquiryOrders.value.find(order => order.id === orderId);
     if (order) {
+      const previousStatus = order.planConfirmStatus;
       order.planConfirmStatus = status;
+      
+      // 如果从未确认变为已确认，创建对应的询价结果记录
+      if (previousStatus === 'unconfirmed' && status === 'confirmed') {
+        const newResult: InquiryResult = {
+          id: `result_${orderId}`,
+          fundName: order.fundName,
+          dealAmount: order.anonymousInquiryAmount || 0,
+          repoAmount: order.anonymousInquiryAmount || 0,
+          repoRate: 2.5 + Math.random() * 2, // 随机利率 2.5-4.5%
+          contractName: '交易所质押式回购',
+          orderType: 'buy',
+          tradeDate: new Date().toISOString().split('T')[0],
+          ourTrader: order.trader,
+          orderStatus: 'confirmed',
+          inquiryStatus: 'inquiring',
+          tradeStatus: 'not_completed',
+          counterparty: '待匹配'
+        };
+        
+        inquiryResults.value.push(newResult);
+        saveToStorage(STORAGE_KEYS.INQUIRY_RESULTS, inquiryResults.value);
+      }
       
       // 触发响应式更新，确保表格重新渲染
       inquiryOrders.value = [...inquiryOrders.value];
@@ -163,7 +237,10 @@ export const useDataStore = defineStore('data', () => {
     
     // 重置为初始数据
     inquiryOrders.value = [...mockInquiryOrders];
-    inquiryResults.value = [...mockInquiryResults];
+    inquiryResults.value = [];
+    
+    // 为已确认的订单生成对应的询价结果
+    initializeInquiryResults();
     
     // 保存重置后的数据
     saveToStorage(STORAGE_KEYS.INQUIRY_ORDERS, inquiryOrders.value);
@@ -190,6 +267,7 @@ export const useDataStore = defineStore('data', () => {
     updateOrderPlanStatus,
     updateOrderAnonymousData,
     addNewOrder,
-    clearStorage
+    clearStorage,
+    initializeInquiryResults
   };
 });

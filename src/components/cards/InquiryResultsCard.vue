@@ -1,7 +1,7 @@
 <template>
   <div class="card-container">
     <div class="card-header">
-      <h2 class="card-title">X-Repo询价结果</h2>
+      <h2 class="card-title">{{ dynamicTitle }}</h2>
     </div>
     
     <div class="card-body">
@@ -21,6 +21,8 @@
         :groupDefaultExpanded="1"
         :getDataPath="getDataPath"
         @grid-ready="onGridReady"
+        :noRowsOverlayComponent="'agNoRowsOverlay'"
+        :overlayNoRowsTemplate="'暂无数据'"
       />
     </div>
     
@@ -61,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import { 
   CalculatorOutlined,
@@ -79,6 +81,26 @@ import { formatAmount, formatRate, formatDate, getStatusClass, getOrderTypeClass
 const dataStore = useDataStore();
 const modalStore = useModalStore();
 
+// 动态标题
+const dynamicTitle = computed(() => {
+  const selectedCount = dataStore.selectedOrderIds.length;
+  
+  if (selectedCount === 0) {
+    return 'X-Repo询价结果';
+  }
+  
+  // 检查是否全选
+  const totalConfirmedCount = dataStore.filteredInquiryOrders.filter(
+    order => order.planConfirmStatus === 'confirmed'
+  ).length;
+  
+  if (selectedCount === totalConfirmedCount && totalConfirmedCount > 0) {
+    return 'X-Repo询价结果';
+  }
+  
+  return `X-Repo询价结果：选中 ${selectedCount} 条记录`;
+});
+
 // 表格列定义
 const columnDefs = ref([
   { 
@@ -95,14 +117,14 @@ const columnDefs = ref([
     headerName: '基金名称', 
     field: 'fundName', 
     minWidth: 180,
-    cellRenderer: params => {
+    cellRenderer: (params: any) => {
       if (params.node.group) {
         return `<span class="group-cell">
           <span class="expand-icon">${params.expanded ? '▼' : '▶'}</span>
           ${params.value}
         </span>`;
       }
-      return `<span class="indent">${params.value}</span>`;
+      return `<span>${params.value}</span>`;
     }
   },
   { 
