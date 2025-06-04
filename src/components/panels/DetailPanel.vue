@@ -134,11 +134,11 @@ const anonymousLocalDebtFrozen = ref(0);
 // 更新表单数据的函数
 function updateFormData() {
   if (currentOrder.value) {
-    // 匿名计划数据初始化为0，需要用户手动填写
+    // 从订单数据中加载已存在的匿名计划数据
     anonymousInquiryAmount.value = currentOrder.value.anonymousInquiryAmount || 0;
-    anonymousRateDebtFrozen.value = 0;
-    anonymousCdFrozen.value = 0;
-    anonymousLocalDebtFrozen.value = 0;
+    anonymousRateDebtFrozen.value = currentOrder.value.rateDebtFrozenAmount || 0;
+    anonymousCdFrozen.value = currentOrder.value.cdFrozenAmount || 0;
+    anonymousLocalDebtFrozen.value = currentOrder.value.localDebtFrozenAmount || 0;
   }
 }
 
@@ -159,6 +159,16 @@ function closePanel() {
 
 // 确认匿名计划
 function confirmAnonymousPlan() {
+  // 在打开弹窗前，先将面板中修改的数据同步到store
+  if (currentOrder.value) {
+    detailStore.updateCurrentOrderAnonymousData({
+      anonymousInquiryAmount: anonymousInquiryAmount.value,
+      rateDebtFrozenAmount: anonymousRateDebtFrozen.value,
+      cdFrozenAmount: anonymousCdFrozen.value,
+      localDebtFrozenAmount: anonymousLocalDebtFrozen.value
+    });
+  }
+  
   modalStore.openAnonymousPlanModal();
 }
 

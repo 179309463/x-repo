@@ -80,6 +80,19 @@ export const useDetailPanelStore = defineStore('detailPanel', () => {
     }
   }
 
+  // 更新当前订单的匿名计划数据
+  function updateCurrentOrderAnonymousData(data: {
+    anonymousInquiryAmount: number;
+    rateDebtFrozenAmount: number;
+    cdFrozenAmount: number;
+    localDebtFrozenAmount: number;
+  }) {
+    if (selectedOrderId.value) {
+      const dataStore = useDataStore();
+      dataStore.updateOrderAnonymousData(selectedOrderId.value, data);
+    }
+  }
+
   return {
     isDetailPanelOpen,
     selectedOrderId,
@@ -93,6 +106,7 @@ export const useDetailPanelStore = defineStore('detailPanel', () => {
     closeDetailPanel,
     setSelectedOrder,
     goToPreviousOrder,
-    goToNextOrder
+    goToNextOrder,
+    updateCurrentOrderAnonymousData
   };
 });
