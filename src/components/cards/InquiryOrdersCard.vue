@@ -74,9 +74,10 @@ const columnDefs = ref([
     field: 'planConfirmStatus', 
     minWidth: 120,
     pinned: 'left',
+    cellStyle: { textAlign: 'center' },
     cellRenderer: (params: any) => {
-      const status = params.value === 'confirmed' ? '已确认' : '未确认';
-      const className = params.value === 'confirmed' ? 'success' : 'secondary';
+      const status = params.value === 'confirmed' ? '已确认' : '待确认';
+      const className = params.value === 'confirmed' ? 'success' : 'primary';
       return `<div class="status-badge ${className} clickable" data-action="open-panel" data-id="${params.data.id}">${status}</div>`;
     }
   },
