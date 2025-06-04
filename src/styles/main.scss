@@ -39,6 +39,10 @@ body {
     padding: 8px;
     line-height: 20px;
     
+    .ag-cell-label-container {
+      padding: 0 !important;
+    }
+    
     .ag-header-cell-text {
       text-overflow: ellipsis;
       overflow: hidden;
