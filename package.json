@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "ag-grid-community": "^31.0.1",
+    "ag-grid-enterprise": "^31.3.4",
     "ag-grid-vue3": "^31.0.1",
     "ant-design-vue": "^4.0.8",
     "dayjs": "^1.11.10",

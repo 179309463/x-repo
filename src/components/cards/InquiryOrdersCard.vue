@@ -35,6 +35,10 @@
         @grid-ready="onGridReady"
         :enableColResize="true"
         :suppressHorizontalScroll="false"
+        :getContextMenuItems="getContextMenuItems"
+        :allowContextMenuWithControlKey="true"
+        :suppressContextMenu="false"
+        @cell-context-menu="onCellContextMenu"
       />
     </div>
   </div>
@@ -354,6 +358,84 @@ function onGridReady(params: any) {
   params.api.sizeColumnsToFit();
 }
 
+// 处理右键菜单事件
+function onCellContextMenu(event: any) {
+  console.log('Context menu event:', event);
+}
+
+// 获取右键菜单项
+function getContextMenuItems(params: any) {
+  console.log('getContextMenuItems called with params:', params);
+  
+  const rowData = params.node?.data;
+  if (!rowData) {
+    console.log('No row data found');
+    return [];
+  }
+
+  console.log('Row data:', rowData);
+
+  // 根据状态决定第一个菜单项
+  const firstMenuItem = rowData.planConfirmStatus === 'confirmed' 
+    ? {
+        name: '计划编辑',
+        action: () => {
+          console.log('计划编辑 clicked for row:', rowData);
+          // 编辑已确认的计划 - 打开询价指令详情侧滑面板
+          detailStore.openDetailPanel(rowData.id);
+        },
+        icon: '<span style="font-size: 11px;">✏️</span>'
+      }
+    : {
+        name: '计划确认',
+        action: () => {
+          console.log('计划确认 clicked for row:', rowData);
+          // 确认待确认的计划 - 打开询价指令详情侧滑面板
+          detailStore.openDetailPanel(rowData.id);
+        },
+        icon: '<span style="font-size: 11px;">✅</span>'
+      };
+
+  const menuItems = [
+    firstMenuItem,
+    {
+      name: '冻券维护',
+      action: () => {
+        console.log('冻券维护 clicked for row:', rowData);
+        // 直接弹出"冻券信息维护"弹窗
+        detailStore.setSelectedOrder(rowData.id);
+        modalStore.openFrozenBondsModal();
+      },
+      icon: '<span style="font-size: 11px;">🔒</span>'
+    },
+    'separator',
+    {
+      name: '设置',
+      action: () => {
+        console.log('设置功能');
+      },
+      icon: '<span style="font-size: 11px;">⚙️</span>'
+    },
+    {
+      name: '导出',
+      action: () => {
+        console.log('导出功能');
+      },
+      icon: '<span style="font-size: 11px;">📤</span>'
+    },
+    {
+      name: '打印',
+      action: () => {
+        console.log('打印功能');
+      },
+      icon: '<span style="font-size: 11px;">🖨️</span>'
+    }
+  ];
+
+  console.log('Returning menu items:', menuItems);
+  return menuItems;
+}
+
 function refreshData() {
   // 随机生成1-2条新的待确认询价指令记录
   const newRecordsCount = Math.floor(Math.random() * 2) + 1; // 1-2条记录
@@ -574,5 +656,75 @@ function refreshData() {
   height: 100% !important;
   box-sizing: border-box !important;
   text-align: right !important;
+}
+
+/* 右键菜单样式 - 均匀分布 */
+:deep(.ag-menu) {
+  padding: 0 !important;
+  min-width: 130px !important;
+  border: 1px solid #babfc7 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+  
+  .ag-menu-option {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    color: #222 !important;
+    
+    &:hover {
+      background-color: #e8f4fd !important;
+      color: #000 !important;
+    }
+    
+    &.ag-menu-option-disabled {
+      color: #ccc !important;
+      cursor: not-allowed !important;
+      
+      &:hover {
+        background-color: transparent !important;
+      }
+    }
+  }
+  
+  .ag-menu-option-icon {
+    width: 14px !important;
+    height: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .ag-menu-option-text {
+    flex: 1 !important;
+    font-weight: 400 !important;
+    white-space: nowrap !important;
+  }
+  
+  .ag-menu-separator {
+    border: none !important;
+    margin: 0 !important;
+    height: 7px !important; /* 增加分割线本身的高度来创造间距 */
+    padding: 0 !important;
+    position: relative !important;
+    background: transparent !important;
+  }
+  
+  /* 在分割线中间绘制实际的线 */
+  .ag-menu-separator::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 3px !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 1px !important;
+    background: #ddd !important;
+    border: none !important;
+  }
 }
 </style>
