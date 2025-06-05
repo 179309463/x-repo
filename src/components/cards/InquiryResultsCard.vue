@@ -51,32 +51,24 @@
     <div class="card-footer">
       <div class="action-buttons">
         <a-space>
-          <a-button @click="openRiskCalculationModal">
+          <a-button @click="openRiskCalculationModal" :disabled="!hasSelectedRows">
             <template #icon><calculator-outlined /></template>
             风控试算
           </a-button>
-          <a-button type="primary" ghost @click="openExecuteTradeModal">
+          <a-button type="primary" ghost @click="openExecuteTradeModal" :disabled="!hasSelectedRows">
             <template #icon><check-circle-outlined /></template>
             执行交易
           </a-button>
-          <a-button type="primary" @click="openExecuteTradeWithQuoteModal">
+          <a-button type="primary" @click="openExecuteTradeWithQuoteModal" :disabled="!hasSelectedRows">
             执行交易并发报价
           </a-button>
-          <a-button @click="openSendQuoteModal">
+          <a-button @click="openSendQuoteModal" :disabled="!hasSelectedRows">
             <template #icon><notification-outlined /></template>
             发送报价
           </a-button>
-          <a-button danger @click="openWithdrawQuoteModal">
+          <a-button danger @click="openWithdrawQuoteModal" :disabled="!hasSelectedRows">
             <template #icon><stop-outlined /></template>
             撤销报价
-          </a-button>
-          <a-button @click="openSubmitBondsModal">
-            <template #icon><audit-outlined /></template>
-            提券
-          </a-button>
-          <a-button @click="openSplitTradeModal">
-            <template #icon><fork-outlined /></template>
-            拆分
           </a-button>
         </a-space>
       </div>
@@ -92,8 +84,6 @@ import {
   CheckCircleOutlined,
   NotificationOutlined,
   StopOutlined,
-  AuditOutlined,
-  ForkOutlined,
   PlusOutlined,
   ReloadOutlined
 } from '@ant-design/icons-vue';
@@ -160,6 +150,11 @@ const dynamicTitle = computed(() => {
   }
   
   return `X-Repo询价结果：选中 ${selectedCount} 条记录`;
+});
+
+// 判断是否有选中的行
+const hasSelectedRows = computed(() => {
+  return dataStore.selectedResultIds.length > 0;
 });
 
 // 汇总行数据
@@ -371,6 +366,31 @@ const columnDefs = ref([
       }
       return params.value;
     }
+  },
+  {
+    headerName: '操作',
+    field: 'actions',
+    width: 120,
+    minWidth: 120,
+    maxWidth: 120,
+    pinned: 'right',
+    suppressSizeToFit: true,
+    cellRenderer: (params: any) => {
+      // 汇总行不显示操作按钮
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return `
+        <div class="action-buttons-cell">
+          <button class="ant-btn ant-btn-link ant-btn-sm submit-bonds-btn" data-id="${params.data.id}">
+            提券
+          </button>
+          <button class="ant-btn ant-btn-link ant-btn-sm split-trade-btn" data-id="${params.data.id}">
+            拆分
+          </button>
+        </div>
+      `;
+    }
   }
 ]);
 
@@ -428,6 +448,27 @@ function openAddSubOrderModal() {
 
 function onGridReady(params: any): void {
   params.api.sizeColumnsToFit();
+  
+  // 添加操作按钮的点击事件监听器
+  nextTick(() => {
+    const gridElement = inquiryResultsGridRef.value?.$el;
+    if (gridElement) {
+      // 提券按钮事件
+      gridElement.addEventListener('click', (event: Event) => {
+        const target = event.target as HTMLElement;
+        if (target.classList.contains('submit-bonds-btn')) {
+          const id = target.getAttribute('data-id');
+          console.log('提券按钮被点击，ID:', id);
+          openSubmitBondsModal();
+        }
+        if (target.classList.contains('split-trade-btn')) {
+          const id = target.getAttribute('data-id');
+          console.log('拆分按钮被点击，ID:', id);
+          openSplitTradeModal();
+        }
+      });
+    }
+  });
 }
 
 // 监听筛选条件变化
@@ -593,6 +634,26 @@ onMounted(() => {
     .ant-btn {
       margin: 2px;
       white-space: nowrap;
+    }
+  }
+}
+
+/* 操作列按钮样式 */
+:deep(.action-buttons-cell) {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  
+  .ant-btn-link {
+    font-size: 12px;
+    height: 24px;
+    padding: 0 8px;
+    line-height: 22px;
+    text-decoration: none !important;
+    
+    &:hover {
+      text-decoration: none !important;
     }
   }
 }
