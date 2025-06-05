@@ -5,9 +5,9 @@
         <h2 class="card-title" style="margin: 0; margin-right: 40px; flex-shrink: 0;">X-Repo询价指令</h2>
         <div class="header-controls" style="flex: 1; display: flex; align-items: center;">
           <a-space>
-            <a-checkbox v-model:checked="filters.showCancelled">显示已撤销</a-checkbox>
-            <a-checkbox v-model:checked="filters.showModified">显示已修改</a-checkbox>
-            <a-checkbox v-model:checked="filters.showOtherTraders">显示其他资金交易员</a-checkbox>
+            <a-checkbox v-model:checked="filters.showCancelled">已撤销</a-checkbox>
+            <a-checkbox v-model:checked="filters.showModified">已修改</a-checkbox>
+            <a-checkbox v-model:checked="filters.showOtherTraders">其他资金交易员</a-checkbox>
           </a-space>
         </div>
         <div class="header-actions" style="flex-shrink: 0;">
