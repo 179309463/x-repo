@@ -562,9 +562,6 @@ function getContextMenuItems(params: any) {
 }
 
 function refreshData() {
-  // 清理所有缓存，重新开始
-  dataStore.clearAllCache();
-  
   // 随机生成1-2条新的待确认询价指令记录
   const newRecordsCount = Math.floor(Math.random() * 2) + 1; // 1-2条记录
   
