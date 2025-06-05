@@ -39,13 +39,14 @@
         :allowContextMenuWithControlKey="true"
         :suppressContextMenu="false"
         @cell-context-menu="onCellContextMenu"
+        :pinnedBottomRowData="summaryRowData"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import { ReloadOutlined } from '@ant-design/icons-vue';
 import { useDataStore } from '../../stores/dataStore';
@@ -63,6 +64,32 @@ const filters = reactive({
   showOtherTraders: false
 });
 
+// 汇总行数据
+const summaryRowData = computed(() => {
+  const data = dataStore.filteredInquiryOrders;
+  const totalInquiryAmount = data.reduce((sum, order) => sum + (order.inquiryAmount || 0), 0);
+  const totalNotInquiryAmount = data.reduce((sum, order) => sum + (order.notInquiryAmount || 0), 0);
+  
+  return [{
+    fundName: '总计',
+    inquiryAmount: totalInquiryAmount,
+    notInquiryAmount: totalNotInquiryAmount,
+    // 其他字段设置为空或默认值
+    planConfirmStatus: '',
+    anonymousInquiryAmount: '',
+    anonymousNotInquiryAmount: '',
+    rateDebtFrozenAmount: '',
+    cdFrozenAmount: '',
+    localDebtFrozenAmount: '',
+    listedAmount: '',
+    pendingBondsAmount: '',
+    completedAmount: '',
+    t0MaxBorrowAmount: '',
+    trader: '',
+    orderSequence: ''
+  }];
+});
+
 // 表格列定义
 const columnDefs = ref([
   { 
@@ -73,6 +100,10 @@ const columnDefs = ref([
     minWidth: 50,
     suppressSizeToFit: true,
     checkboxSelection: (params: any) => {
+      // 汇总行不显示复选框
+      if (params.node.rowPinned === 'bottom') {
+        return false;
+      }
       // 只有已确认状态的记录才显示复选框
       return params.data.planConfirmStatus === 'confirmed';
     },
@@ -100,7 +131,14 @@ const columnDefs = ref([
     headerName: '基金名称',
     field: 'fundName', 
     minWidth: 180,
-    pinned: 'left'
+    pinned: 'left',
+    cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return `<strong style="color: #1890ff;">${params.value}</strong>`;
+      }
+      return params.value;
+    }
   },
   { 
     headerName: '计划确认状态',
@@ -109,22 +147,48 @@ const columnDefs = ref([
     pinned: 'left',
     cellStyle: { textAlign: 'center' },
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       const status = params.value === 'confirmed' ? '已确认' : '待确认';
       const className = params.value === 'confirmed' ? 'success' : 'primary';
       return `<div class="status-badge ${className} clickable" data-action="open-panel" data-id="${params.data.id}">${status}</div>`;
     }
   },
   { 
+    headerName: '询价金额', 
+    field: 'inquiryAmount', 
+    minWidth: 120,
+    cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return `<strong style="color: #1890ff;">${formatAmount(params.value)}</strong>`;
+      }
+      return formatAmount(params.value);
+    }
+  },
+  { 
     headerName: '未询价金额', 
     field: 'notInquiryAmount', 
     minWidth: 120,
-    cellRenderer: (params: any) => formatAmount(params.value)
+    cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return `<strong style="color: #1890ff;">${formatAmount(params.value)}</strong>`;
+      }
+      return formatAmount(params.value);
+    }
   },
   { 
     headerName: '询价金额(匿名计划)', 
     field: 'anonymousInquiryAmount', 
     minWidth: 160,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       // 如果计划已确认，显示普通文本
       if (params.data.planConfirmStatus === 'confirmed') {
         return `<span class="confirmed-cell">${formatAmount(params.value)}</span>`;
@@ -145,13 +209,23 @@ const columnDefs = ref([
     headerName: '未询价金额(匿名计划)', 
     field: 'anonymousNotInquiryAmount', 
     minWidth: 180,
-    cellRenderer: (params: any) => formatAmount(params.value)
+    cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return formatAmount(params.value);
+    }
   },
   { 
     headerName: '利率债冻券量', 
     field: 'rateDebtFrozenAmount', 
     minWidth: 130,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       // 如果计划已确认，显示普通文本
       if (params.data.planConfirmStatus === 'confirmed') {
         return `<span class="confirmed-cell">${formatAmount(params.value)}</span>`;
@@ -173,6 +247,10 @@ const columnDefs = ref([
     field: 'cdFrozenAmount', 
     minWidth: 120,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       // 如果计划已确认，显示普通文本
       if (params.data.planConfirmStatus === 'confirmed') {
         return `<span class="confirmed-cell">${formatAmount(params.value)}</span>`;
@@ -194,6 +272,10 @@ const columnDefs = ref([
     field: 'localDebtFrozenAmount', 
     minWidth: 130,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       // 如果计划已确认，显示普通文本
       if (params.data.planConfirmStatus === 'confirmed') {
         return `<span class="confirmed-cell">${formatAmount(params.value)}</span>`;
@@ -214,35 +296,67 @@ const columnDefs = ref([
     headerName: '挂单金额', 
     field: 'listedAmount', 
     minWidth: 120,
-    cellRenderer: (params: any) => formatAmount(params.value)
+    cellRenderer: (params: any) => {
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return formatAmount(params.value);
+    }
   },
   { 
     headerName: '待提券金额', 
     field: 'pendingBondsAmount', 
     minWidth: 130,
-    cellRenderer: (params: any) => formatAmount(params.value)
+    cellRenderer: (params: any) => {
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return formatAmount(params.value);
+    }
   },
   { 
     headerName: '已成金额', 
     field: 'completedAmount', 
     minWidth: 120,
-    cellRenderer: (params: any) => formatAmount(params.value)
+    cellRenderer: (params: any) => {
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return formatAmount(params.value);
+    }
   },
   { 
     headerName: 'T0最大可借金额', 
     field: 't0MaxBorrowAmount', 
     minWidth: 150,
-    cellRenderer: (params: any) => formatAmount(params.value)
+    cellRenderer: (params: any) => {
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return formatAmount(params.value);
+    }
   },
   { 
     headerName: '资金交易员', 
     field: 'trader', 
-    minWidth: 120
+    minWidth: 120,
+    cellRenderer: (params: any) => {
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return params.value;
+    }
   },
   { 
     headerName: '询价指令序号', 
     field: 'orderSequence', 
-    minWidth: 140
+    minWidth: 140,
+    cellRenderer: (params: any) => {
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return params.value;
+    }
   }
 ]);
 
@@ -725,6 +839,18 @@ function refreshData() {
     height: 1px !important;
     background: #ddd !important;
     border: none !important;
+  }
+}
+
+/* 汇总行样式 */
+:deep(.ag-row-pinned-bottom) {
+  background-color: #f0f9ff !important;
+  border-top: 2px solid #1890ff !important;
+  font-weight: 500 !important;
+  
+  .ag-cell {
+    background-color: #f0f9ff !important;
+    border-bottom: none !important;
   }
 }
 </style>

@@ -23,6 +23,10 @@
         @grid-ready="onGridReady"
         :noRowsOverlayComponent="'agNoRowsOverlay'"
         :overlayNoRowsTemplate="'暂无数据'"
+        :getContextMenuItems="getContextMenuItems"
+        :allowContextMenuWithControlKey="true"
+        :suppressContextMenu="false"
+        :pinnedBottomRowData="summaryRowData"
       />
     </div>
     
@@ -130,6 +134,28 @@ const dynamicTitle = computed(() => {
   return `X-Repo询价结果：选中 ${selectedCount} 条记录`;
 });
 
+// 汇总行数据
+const summaryRowData = computed(() => {
+  const data = dataStore.filteredInquiryResults;
+  const totalDealAmount = data.reduce((sum, result) => sum + (result.dealAmount || 0), 0);
+  
+  return [{
+    fundName: '总计',
+    dealAmount: totalDealAmount,
+    // 其他字段设置为空或默认值
+    repoAmount: '',
+    repoRate: '',
+    contractName: '',
+    orderType: '',
+    tradeDate: '',
+    ourTrader: '',
+    orderStatus: '',
+    inquiryStatus: '',
+    tradeStatus: '',
+    counterparty: ''
+  }];
+});
+
 // 表格列定义
 const columnDefs = ref([
   { 
@@ -139,7 +165,13 @@ const columnDefs = ref([
     maxWidth: 50,
     minWidth: 50,
     suppressSizeToFit: true,
-    checkboxSelection: true,
+    checkboxSelection: (params: any) => {
+      // 汇总行不显示复选框
+      if (params.node.rowPinned === 'bottom') {
+        return false;
+      }
+      return true;
+    },
     headerCheckboxSelection: true
   },
   { 
@@ -147,6 +179,10 @@ const columnDefs = ref([
     field: 'fundName', 
     minWidth: 180,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return `<strong style="color: #1890ff;">${params.value}</strong>`;
+      }
       if (params.node.group) {
         return `<span class="group-cell">
           <span class="expand-icon">${params.expanded ? '▼' : '▶'}</span>
@@ -161,6 +197,10 @@ const columnDefs = ref([
     field: 'dealAmount', 
     minWidth: 120,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return `<strong style="color: #1890ff;">${formatAmount(params.value)}</strong>`;
+      }
       const value = params.value;
       return `<span class="amount-completed">${formatAmount(value)}</span>`;
     }
@@ -170,6 +210,10 @@ const columnDefs = ref([
     field: 'repoAmount', 
     minWidth: 120,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       const value = params.value;
       return `<span class="amount-normal">${formatAmount(value)}</span>`;
     }
@@ -179,6 +223,10 @@ const columnDefs = ref([
     field: 'repoRate', 
     minWidth: 120,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       const value = params.value;
       return formatRate(value);
     }
@@ -186,13 +234,24 @@ const columnDefs = ref([
   { 
     headerName: '合约名称', 
     field: 'contractName', 
-    minWidth: 150
+    minWidth: 150,
+    cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return params.value;
+    }
   },
   { 
     headerName: '订单类型', 
     field: 'orderType', 
     minWidth: 100,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       const value = params.value;
       const type = value === 'buy' ? '买入' : '卖出';
       const className = getOrderTypeClass(value);
@@ -204,19 +263,34 @@ const columnDefs = ref([
     field: 'tradeDate', 
     minWidth: 120,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       return formatDate(params.value);
     }
   },
   { 
     headerName: '我方交易员', 
     field: 'ourTrader', 
-    minWidth: 120
+    minWidth: 120,
+    cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return params.value;
+    }
   },
   { 
     headerName: '指令状态', 
     field: 'orderStatus', 
     minWidth: 100,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       const value = params.value;
       const status = value === 'confirmed' ? '已确认' : '待确认';
       const className = getStatusClass(value, 'order');
@@ -228,6 +302,10 @@ const columnDefs = ref([
     field: 'inquiryStatus', 
     minWidth: 100,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       const value = params.value;
       const status = value === 'inquiring' ? '询价中' : '已询价';
       const className = getStatusClass(value, 'inquiry');
@@ -239,6 +317,10 @@ const columnDefs = ref([
     field: 'tradeStatus', 
     minWidth: 100,
     cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
       const value = params.value;
       let status = '未成交';
       if (value === 'completed') {
@@ -253,7 +335,14 @@ const columnDefs = ref([
   { 
     headerName: '交易对手', 
     field: 'counterparty', 
-    minWidth: 120
+    minWidth: 120,
+    cellRenderer: (params: any) => {
+      // 检查是否为汇总行
+      if (params.node.rowPinned === 'bottom') {
+        return '';
+      }
+      return params.value;
+    }
   }
 ]);
 
@@ -306,6 +395,46 @@ function openAddSubOrderModal() {
 
 function onGridReady(params: any): void {
   params.api.sizeColumnsToFit();
+}
+
+// 获取右键菜单项
+function getContextMenuItems(params: any) {
+  console.log('询价结果右键菜单 - getContextMenuItems called with params:', params);
+  
+  const rowData = params.node?.data;
+  if (!rowData) {
+    console.log('No row data found');
+    return [];
+  }
+
+  console.log('Row data:', rowData);
+
+  const menuItems = [
+    {
+      name: '设置',
+      action: () => {
+        console.log('设置功能 - 询价结果');
+      },
+      icon: '<span style="font-size: 11px;">⚙️</span>'
+    },
+    {
+      name: '导出',
+      action: () => {
+        console.log('导出功能 - 询价结果');
+      },
+      icon: '<span style="font-size: 11px;">📤</span>'
+    },
+    {
+      name: '打印',
+      action: () => {
+        console.log('打印功能 - 询价结果');
+      },
+      icon: '<span style="font-size: 11px;">🖨️</span>'
+    }
+  ];
+
+  console.log('Returning menu items:', menuItems);
+  return menuItems;
 }
 </script>
 
@@ -369,19 +498,75 @@ function onGridReady(params: any): void {
       white-space: nowrap;
     }
   }
+}
+
+/* 右键菜单样式 - 设置合理的最小宽度和样式 */
+:deep(.ag-menu) {
+  padding: 0 !important;
+  min-width: 130px !important;
+  border: 1px solid #babfc7 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
   
-  &.responsive {
-    flex-wrap: wrap;
-    gap: 4px;
+  .ag-menu-option {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    color: #222 !important;
     
-    .ant-btn {
-      margin: 2px;
-      white-space: nowrap;
+    &:hover {
+      background-color: #e8f4fd !important;
+      color: #000 !important;
+    }
+    
+    &.ag-menu-option-disabled {
+      color: #ccc !important;
+      cursor: not-allowed !important;
+      
+      &:hover {
+        background-color: transparent !important;
+      }
     }
   }
-}
   
-  .ant-btn {
-    margin: 2px;
+  .ag-menu-option-icon {
+    width: 14px !important;
+    height: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
   }
+  
+  .ag-menu-option-text {
+    flex: 1 !important;
+    font-weight: 400 !important;
+    white-space: nowrap !important;
+  }
+  
+  .ag-menu-separator {
+    border: none !important;
+    margin: 0 !important;
+    height: 7px !important;
+    padding: 0 !important;
+    position: relative !important;
+    background: transparent !important;
+  }
+  
+  /* 在分割线中间绘制实际的线 */
+  .ag-menu-separator::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 3px !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 1px !important;
+    background: #ddd !important;
+    border: none !important;
+  }
+}
 </style>
