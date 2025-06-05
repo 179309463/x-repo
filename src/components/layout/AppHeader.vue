@@ -8,10 +8,39 @@
         <h1>X-Repo交易信息</h1>
       </div>
     </div>
+    
+    <div class="header-actions">
+      <a-button type="text" danger @click="handleClearCache">
+        <template #icon>
+          <delete-outlined />
+        </template>
+        清空缓存
+      </a-button>
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
+import { DeleteOutlined } from '@ant-design/icons-vue';
+import { message } from 'ant-design-vue';
+import { useDataStore } from '../../stores/dataStore';
+
+const dataStore = useDataStore();
+
+function handleClearCache() {
+  // 确认弹窗
+  const confirmed = confirm('确定要清空所有缓存数据吗？这将重置所有数据到初始状态。');
+  
+  if (confirmed) {
+    dataStore.clearAllCache();
+    message.success('缓存已清空，数据已重置');
+    
+    // 刷新页面以确保完全重置
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  }
+}
 </script>
 
 <style lang="scss" scoped>

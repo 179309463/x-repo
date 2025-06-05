@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { InquiryOrder, InquiryResult, FilterState } from '../types';
-import { mockInquiryOrders, mockInquiryResults } from '../mock/mockData';
+import { mockInquiryOrders, mockInquiryResults, CURRENT_USER } from '../mock/mockData';
 
 // localStorage 键名
 const STORAGE_KEYS = {
@@ -77,14 +77,30 @@ export const useDataStore = defineStore('data', () => {
   }
 
   // 初始化询价结果数据
-  if (inquiryResults.value.length === 0) {
+  // 只有当localStorage中有数据时才初始化询价结果
+  // 如果是全新的数据（默认所有订单都是待确认状态），则不创建询价结果
+  const hasStoredResults = localStorage.getItem(STORAGE_KEYS.INQUIRY_RESULTS);
+  if (hasStoredResults && inquiryResults.value.length === 0) {
     initializeInquiryResults();
     saveToStorage(STORAGE_KEYS.INQUIRY_RESULTS, inquiryResults.value);
   }
 
   // 计算属性
   const filteredInquiryOrders = computed(() => {
-    return inquiryOrders.value;
+    let filtered = [...inquiryOrders.value];
+    
+    // 根据"显示其他资金交易员"checkbox过滤
+    if (!filters.value.showOtherTraders) {
+      // 只显示当前用户的记录
+      filtered = filtered.filter(order => order.trader === CURRENT_USER);
+    }
+    
+    // 其他过滤条件可以在这里添加
+    // if (!filters.value.showCancelled) {
+    //   filtered = filtered.filter(order => order.status !== 'cancelled');
+    // }
+    
+    return filtered;
   });
 
   // 根据选中的询价指令过滤询价结果
@@ -251,6 +267,38 @@ export const useDataStore = defineStore('data', () => {
     saveToStorage(STORAGE_KEYS.INQUIRY_RESULTS, inquiryResults.value);
   }
 
+  function clearAllCache() {
+    // 清空所有 localStorage 中的项目相关数据
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('x-repo-') || key.startsWith('X-Repo'))) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.forEach(key => {
+      localStorage.removeItem(key);
+    });
+    
+    // 重新初始化数据
+    inquiryOrders.value = [...mockInquiryOrders];
+    inquiryResults.value = []; // 保持空数组，不初始化询价结果
+    
+    // 清空选择状态
+    selectedOrderIds.value = [];
+    selectedResultIds.value = [];
+    
+    // 重置过滤状态
+    filters.value = {
+      showCancelled: false,
+      showModified: false,
+      showOtherTraders: false
+    };
+    
+    console.log('All cache cleared and data reset to initial state');
+  }
+
   return {
     inquiryOrders,
     inquiryResults,
@@ -272,6 +320,7 @@ export const useDataStore = defineStore('data', () => {
     updateOrderAnonymousData,
     addNewOrder,
     clearStorage,
+    clearAllCache,
     initializeInquiryResults
   };
 });

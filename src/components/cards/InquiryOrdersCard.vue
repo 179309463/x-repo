@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import { ReloadOutlined } from '@ant-design/icons-vue';
 import { useDataStore } from '../../stores/dataStore';
@@ -62,6 +62,16 @@ const filters = reactive({
   showCancelled: false,
   showModified: false,
   showOtherTraders: false
+});
+
+// 监听filters变化，同步到dataStore
+watch(filters, (newFilters) => {
+  dataStore.updateFilters(newFilters);
+}, { deep: true });
+
+// 初始化时同步filters到dataStore
+onMounted(() => {
+  dataStore.updateFilters(filters);
 });
 
 // 汇总行数据

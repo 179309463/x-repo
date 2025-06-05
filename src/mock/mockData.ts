@@ -1,49 +1,17 @@
 import type { InquiryOrder, InquiryResult, FrozenBond, TradeIntent, BondSelection } from '../types';
 
+// 当前登录用户
+export const CURRENT_USER = '张三';
+
 // 模拟询价指令数据
 export const mockInquiryOrders: InquiryOrder[] = [
+  // 张三的记录（当前用户）
   {
     id: '1',
-    fundName: '优选增强债券型',
-    planConfirmStatus: 'confirmed',
-    notInquiryAmount: 100000000,
-    inquiryAmount: 50000000,
-    anonymousInquiryAmount: 0,
-    anonymousNotInquiryAmount: 0,
-    rateDebtFrozenAmount: 0,
-    cdFrozenAmount: 0,
-    localDebtFrozenAmount: 0,
-    listedAmount: 40000000,
-    pendingBondsAmount: 10000000,
-    completedAmount: 45000000,
-    t0MaxBorrowAmount: 120000000,
-    trader: '张三',
-    orderSequence: 'XR2025042500001'
-  },
-  {
-    id: '2',
-    fundName: '稳健配置混合型',
-    planConfirmStatus: 'unconfirmed',
-    notInquiryAmount: 80000000,
-    inquiryAmount: 60000000,
-    anonymousInquiryAmount: 0,
-    anonymousNotInquiryAmount: 0,
-    rateDebtFrozenAmount: 0,
-    cdFrozenAmount: 0,
-    localDebtFrozenAmount: 0,
-    listedAmount: 35000000,
-    pendingBondsAmount: 8000000,
-    completedAmount: 55000000,
-    t0MaxBorrowAmount: 100000000,
-    trader: '张三',
-    orderSequence: 'XR2025042500002'
-  },
-  {
-    id: '3',
     fundName: '招财宝货币基金',
     planConfirmStatus: 'unconfirmed',
-    notInquiryAmount: 200000000,
-    inquiryAmount: 150000000,
+    notInquiryAmount: 90000000,
+    inquiryAmount: 20000000,
     anonymousInquiryAmount: 0,
     anonymousNotInquiryAmount: 0,
     rateDebtFrozenAmount: 0,
@@ -53,15 +21,15 @@ export const mockInquiryOrders: InquiryOrder[] = [
     pendingBondsAmount: 30000000,
     completedAmount: 140000000,
     t0MaxBorrowAmount: 250000000,
-    trader: '李四',
+    trader: '张三',
     orderSequence: 'XR2025042500003'
   },
   {
-    id: '4',
+    id: '2',
     fundName: '长盈固收增强',
     planConfirmStatus: 'unconfirmed',
-    notInquiryAmount: 150000000,
-    inquiryAmount: 100000000,
+    notInquiryAmount: 70000000,
+    inquiryAmount: 0,
     anonymousInquiryAmount: 0,
     anonymousNotInquiryAmount: 0,
     rateDebtFrozenAmount: 0,
@@ -75,11 +43,11 @@ export const mockInquiryOrders: InquiryOrder[] = [
     orderSequence: 'XR2025042500004'
   },
   {
-    id: '5',
+    id: '3',
     fundName: '金鑫债券发展',
     planConfirmStatus: 'unconfirmed',
-    notInquiryAmount: 120000000,
-    inquiryAmount: 80000000,
+    notInquiryAmount: 60000000,
+    inquiryAmount: 30000000,
     anonymousInquiryAmount: 0,
     anonymousNotInquiryAmount: 0,
     rateDebtFrozenAmount: 0,
@@ -89,93 +57,124 @@ export const mockInquiryOrders: InquiryOrder[] = [
     pendingBondsAmount: 15000000,
     completedAmount: 75000000,
     t0MaxBorrowAmount: 150000000,
-    trader: '王五',
+    trader: '张三',
     orderSequence: 'XR2025042500005'
+  },
+  // 李四的记录（其他交易员）
+  {
+    id: '8',
+    fundName: '广发核心精选混合A',
+    planConfirmStatus: 'unconfirmed',
+    notInquiryAmount: 0,
+    inquiryAmount: 0,
+    anonymousInquiryAmount: 0,
+    anonymousNotInquiryAmount: 0,
+    rateDebtFrozenAmount: 0,
+    cdFrozenAmount: 0,
+    localDebtFrozenAmount: 0,
+    listedAmount: 0,
+    pendingBondsAmount: 81100000,
+    completedAmount: 0,
+    t0MaxBorrowAmount: 81100000,
+    trader: '李四',
+    orderSequence: 'XR1749087659159G'
+  },
+  {
+    id: '9',
+    fundName: '嘉实新兴产业股票型',
+    planConfirmStatus: 'unconfirmed',
+    notInquiryAmount: 0,
+    inquiryAmount: 0,
+    anonymousInquiryAmount: 0,
+    anonymousNotInquiryAmount: 0,
+    rateDebtFrozenAmount: 0,
+    cdFrozenAmount: 0,
+    localDebtFrozenAmount: 0,
+    listedAmount: 0,
+    pendingBondsAmount: 61100000,
+    completedAmount: 0,
+    t0MaxBorrowAmount: 61100000,
+    trader: '李四',
+    orderSequence: 'XR1749087659159G'
+  },
+  {
+    id: '10',
+    fundName: '嘉实新兴产业股票型',
+    planConfirmStatus: 'unconfirmed',
+    notInquiryAmount: 0,
+    inquiryAmount: 0,
+    anonymousInquiryAmount: 0,
+    anonymousNotInquiryAmount: 0,
+    rateDebtFrozenAmount: 0,
+    cdFrozenAmount: 0,
+    localDebtFrozenAmount: 0,
+    listedAmount: 0,
+    pendingBondsAmount: 120200000,
+    completedAmount: 0,
+    t0MaxBorrowAmount: 120200000,
+    trader: '李四',
+    orderSequence: 'XR1749087732189G'
+  },
+  // 王五的记录（其他交易员）
+  {
+    id: '11',
+    fundName: '博时主题行业混合',
+    planConfirmStatus: 'unconfirmed',
+    notInquiryAmount: 80000000,
+    inquiryAmount: 60000000,
+    anonymousInquiryAmount: 0,
+    anonymousNotInquiryAmount: 0,
+    rateDebtFrozenAmount: 0,
+    cdFrozenAmount: 0,
+    localDebtFrozenAmount: 0,
+    listedAmount: 35000000,
+    pendingBondsAmount: 8000000,
+    completedAmount: 55000000,
+    t0MaxBorrowAmount: 100000000,
+    trader: '王五',
+    orderSequence: 'XR2025042500006'
+  },
+  {
+    id: '12',
+    fundName: '南方成长先锋混合',
+    planConfirmStatus: 'confirmed',
+    notInquiryAmount: 70000000,
+    inquiryAmount: 45000000,
+    anonymousInquiryAmount: 20000000,
+    anonymousNotInquiryAmount: 15000000,
+    rateDebtFrozenAmount: 25000000,
+    cdFrozenAmount: 15000000,
+    localDebtFrozenAmount: 10000000,
+    listedAmount: 42000000,
+    pendingBondsAmount: 12000000,
+    completedAmount: 68000000,
+    t0MaxBorrowAmount: 95000000,
+    trader: '王五',
+    orderSequence: 'XR2025042500007'
+  },
+  // 孙七的记录（其他交易员）
+  {
+    id: '13',
+    fundName: '国泰中小盘成长混合',
+    planConfirmStatus: 'unconfirmed',
+    notInquiryAmount: 65000000,
+    inquiryAmount: 35000000,
+    anonymousInquiryAmount: 0,
+    anonymousNotInquiryAmount: 0,
+    rateDebtFrozenAmount: 0,
+    cdFrozenAmount: 0,
+    localDebtFrozenAmount: 0,
+    listedAmount: 28000000,
+    pendingBondsAmount: 5000000,
+    completedAmount: 45000000,
+    t0MaxBorrowAmount: 85000000,
+    trader: '孙七',
+    orderSequence: 'XR2025042500008'
   }
 ];
 
-// 模拟询价结果数据（带层级关系）
-export const mockInquiryResults: InquiryResult[] = [
-  {
-    id: 'r1',
-    fundName: '优选增强债券型',
-    dealAmount: 45000000,
-    repoAmount: 45000000,
-    repoRate: 0.0236,
-    contractName: '交易所质押式回购',
-    orderType: 'buy',
-    tradeDate: '2025-04-25',
-    ourTrader: '张三',
-    orderStatus: 'confirmed',
-    inquiryStatus: 'inquired',
-    tradeStatus: 'completed',
-    counterparty: '华泰证券',
-    children: [
-      {
-        id: 'r1-1',
-        parentId: 'r1',
-        fundName: '优选增强债券型-子单1',
-        dealAmount: 25000000,
-        repoAmount: 25000000,
-        repoRate: 0.0236,
-        contractName: '交易所质押式回购',
-        orderType: 'buy',
-        tradeDate: '2025-04-25',
-        ourTrader: '张三',
-        orderStatus: 'confirmed',
-        inquiryStatus: 'inquired',
-        tradeStatus: 'completed',
-        counterparty: '华泰证券'
-      },
-      {
-        id: 'r1-2',
-        parentId: 'r1',
-        fundName: '优选增强债券型-子单2',
-        dealAmount: 20000000,
-        repoAmount: 20000000,
-        repoRate: 0.0235,
-        contractName: '交易所质押式回购',
-        orderType: 'buy',
-        tradeDate: '2025-04-25',
-        ourTrader: '张三',
-        orderStatus: 'confirmed',
-        inquiryStatus: 'inquired',
-        tradeStatus: 'completed',
-        counterparty: '国泰君安'
-      }
-    ]
-  },
-  {
-    id: 'r2',
-    fundName: '稳健配置混合型',
-    dealAmount: 35000000,
-    repoAmount: 35000000,
-    repoRate: 0.0240,
-    contractName: '交易所质押式回购',
-    orderType: 'sell',
-    tradeDate: '2025-04-25',
-    ourTrader: '张三',
-    orderStatus: 'confirmed',
-    inquiryStatus: 'inquired',
-    tradeStatus: 'partial',
-    counterparty: '中信证券'
-  },
-  {
-    id: 'r3',
-    fundName: '招财宝货币基金',
-    dealAmount: 0,
-    repoAmount: 150000000,
-    repoRate: 0.0245,
-    contractName: '交易所质押式回购',
-    orderType: 'buy',
-    tradeDate: '2025-04-25',
-    ourTrader: '李四',
-    orderStatus: 'pending',
-    inquiryStatus: 'inquiring',
-    tradeStatus: 'not_completed',
-    counterparty: '待定'
-  }
-];
+// 模拟询价结果数据（默认为空，只有确认计划后才会有数据）
+export const mockInquiryResults: InquiryResult[] = [];
 
 // 模拟冻券数据
 export const mockFrozenBonds: FrozenBond[] = [
