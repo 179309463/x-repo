@@ -1,16 +1,16 @@
 <template>
   <div class="card-container">
-    <div class="card-header">
-      <div class="header-content">
-        <h2 class="card-title">X-Repo询价指令</h2>
-        <div class="header-controls">
+    <div class="card-header" style="padding: 8px 16px !important;">
+      <div class="header-content" style="display: flex; align-items: center; width: 100%;">
+        <h2 class="card-title" style="margin: 0; margin-right: 40px; flex-shrink: 0;">X-Repo询价指令</h2>
+        <div class="header-controls" style="flex: 1; display: flex; align-items: center;">
           <a-space>
             <a-checkbox v-model:checked="filters.showCancelled">显示已撤销</a-checkbox>
             <a-checkbox v-model:checked="filters.showModified">显示已修改</a-checkbox>
             <a-checkbox v-model:checked="filters.showOtherTraders">显示其他资金交易员</a-checkbox>
           </a-space>
         </div>
-        <div class="header-actions">
+        <div class="header-actions" style="flex-shrink: 0;">
           <a-button type="primary" ghost @click="refreshData">
             <template #icon><reload-outlined /></template>
             刷新数据
@@ -612,7 +612,7 @@ function refreshData() {
 }
 
 .card-header {
-  padding: 12px 16px;
+  padding: 8px 16px;
   border-bottom: 1px solid #f0f0f0;
   
   .header-content {

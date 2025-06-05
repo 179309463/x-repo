@@ -1,7 +1,25 @@
 <template>
   <div class="card-container">
-    <div class="card-header">
-      <h2 class="card-title">{{ dynamicTitle }}</h2>
+    <div class="card-header" style="padding: 8px 16px !important;">
+      <div class="header-content" style="display: flex; align-items: center; width: 100%;">
+        <h2 class="card-title" style="margin: 0; margin-right: 40px; flex-shrink: 0;">X-Repo询价结果</h2>
+        <div class="header-controls" style="flex: 1; display: flex; align-items: center;">
+          <a-space>
+            <a-checkbox v-model:checked="filters.showExecuted">已执行</a-checkbox>
+            <a-checkbox v-model:checked="filters.showCompleted">已成交</a-checkbox>
+            <a-checkbox v-model:checked="filters.showOtherTraders">其他交易员</a-checkbox>
+            <a-checkbox v-model:checked="filters.showInvalidResults">无效结果</a-checkbox>
+            <a-checkbox v-model:checked="filters.showAllResults">全部结果</a-checkbox>
+            <a-checkbox v-model:checked="filters.showFrontQuotes">前台报价</a-checkbox>
+          </a-space>
+        </div>
+        <div class="header-actions" style="flex-shrink: 0;">
+          <a-button type="primary" ghost @click="refreshData">
+            <template #icon><reload-outlined /></template>
+            刷新数据
+          </a-button>
+        </div>
+      </div>
     </div>
     
     <div class="card-body">
@@ -67,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, reactive, computed, watch, nextTick, onMounted } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import { 
   CalculatorOutlined,
@@ -76,7 +94,8 @@ import {
   StopOutlined,
   AuditOutlined,
   ForkOutlined,
-  PlusOutlined
+  PlusOutlined,
+  ReloadOutlined
 } from '@ant-design/icons-vue';
 import { useDataStore } from '../../stores/dataStore';
 import { useModalStore } from '../../stores/modalStore';
@@ -84,6 +103,15 @@ import { formatAmount, formatRate, formatDate, getStatusClass, getOrderTypeClass
 
 const dataStore = useDataStore();
 const modalStore = useModalStore();
+
+const filters = reactive({
+  showExecuted: false,
+  showCompleted: false,
+  showOtherTraders: false,
+  showInvalidResults: false,
+  showAllResults: false,
+  showFrontQuotes: false
+});
 
 // AG-Grid 实例引用
 const inquiryResultsGridRef = ref<InstanceType<typeof AgGridVue> | null>(null);
@@ -397,6 +425,18 @@ function onGridReady(params: any): void {
   params.api.sizeColumnsToFit();
 }
 
+// 监听筛选条件变化
+function applyFilters() {
+  // TODO: 实现询价结果的筛选逻辑
+  console.log('Apply filters:', filters);
+}
+
+// 刷新数据
+function refreshData() {
+  console.log('刷新询价结果数据');
+  // TODO: 实现数据刷新逻辑
+}
+
 // 获取右键菜单项
 function getContextMenuItems(params: any) {
   console.log('询价结果右键菜单 - getContextMenuItems called with params:', params);
@@ -436,28 +476,80 @@ function getContextMenuItems(params: any) {
   console.log('Returning menu items:', menuItems);
   return menuItems;
 }
+
+onMounted(() => {
+  applyFilters();
+});
 </script>
 
 <style lang="scss" scoped>
+.card-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card-body {
+  flex: 1;
+  padding: 16px;
+  overflow: hidden;
+}
+
 .inquiry-results-grid {
   height: 100%;
   width: 100%;
 }
 
 .card-header {
-  padding: 12px 16px;
+  padding: 8px 16px;
   border-bottom: 1px solid #f0f0f0;
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    
+    @media (max-width: 1200px) {
+      .header-controls {
+        display: none;
+      }
+    }
+  }
   
   .card-title {
     font-size: 16px;
     font-weight: 500;
     margin: 0;
     white-space: nowrap;
+    margin-right: 40px;
+  }
+  
+  .header-controls {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    
+    :deep(.ant-space) {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    :deep(.ant-checkbox-wrapper) {
+      margin-right: 0;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+  }
+  
+  .header-actions {
+    margin-left: auto;
   }
 }
 
 .card-footer {
-  padding: 16px;
+  padding: 8px 16px;
   border-top: 1px solid #f0f0f0;
   
   .action-buttons {
@@ -567,6 +659,75 @@ function getContextMenuItems(params: any) {
     height: 1px !important;
     background: #ddd !important;
     border: none !important;
+  }
+}
+
+/* 金额样式 */
+:deep(.amount-completed) {
+  color: #52c41a;
+  font-weight: 500;
+}
+
+:deep(.amount-normal) {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+/* 状态徽章样式 */
+:deep(.status-badge) {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+  text-align: center;
+  
+  &.success {
+    background-color: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+  }
+  
+  &.primary {
+    background-color: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+  }
+  
+  &.warning {
+    background-color: #fffbe6;
+    color: #faad14;
+    border: 1px solid #ffe58f;
+  }
+  
+  &.danger {
+    background-color: #fff2f0;
+    color: #ff4d4f;
+    border: 1px solid #ffccc7;
+  }
+  
+  &.buy {
+    background-color: #fff2f0;
+    color: #ff4d4f;
+    border: 1px solid #ffccc7;
+  }
+  
+  &.sell {
+    background-color: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+  }
+}
+
+/* 汇总行样式 */
+:deep(.ag-row-pinned-bottom) {
+  background-color: #f0f9ff !important;
+  border-top: 2px solid #1890ff !important;
+  font-weight: 500 !important;
+  
+  .ag-cell {
+    background-color: #f0f9ff !important;
+    border-bottom: none !important;
   }
 }
 </style>
