@@ -237,8 +237,14 @@ const columnDefs = ref([
       if (params.node.rowPinned === 'bottom') {
         return '';
       }
-      const value = params.value;
-      return `<span class="amount-normal">${formatAmount(value)}</span>`;
+      // 简单测试先返回固定的可编辑内容
+      return `<div style="background-color: #fffbf0; padding: 0; height: 100%; width: 100%; display: flex; align-items: center;">
+        <input type="number" 
+               value="${params.value || 0}" 
+               style="width: 100%; height: 100%; border: 1px solid #d9d9d9; border-radius: 2px; outline: none; background: transparent; padding: 4px 6px; font-size: 14px; text-align: right;"
+               data-field="repoAmount" 
+               data-id="${params.data?.id}" />
+      </div>`;
     }
   },
   { 
@@ -250,8 +256,17 @@ const columnDefs = ref([
       if (params.node.rowPinned === 'bottom') {
         return '';
       }
-      const value = params.value;
-      return formatRate(value);
+      // 使用内联样式的可编辑输入框（百分比格式）
+      return `<div style="background-color: #fffbf0; padding: 0; height: 100%; width: 100%; display: flex; align-items: center;">
+        <input type="number" 
+               value="${params.value ? (params.value * 100).toFixed(4) : '0.0000'}" 
+               min="0" 
+               max="100"
+               step="0.0001" 
+               style="width: 100%; height: 100%; border: 1px solid #d9d9d9; border-radius: 2px; outline: none; background: transparent; padding: 4px 6px; font-size: 14px; text-align: right;"
+               data-field="repoRate" 
+               data-id="${params.data?.id}" />
+      </div>`;
     }
   },
   { 
@@ -263,7 +278,15 @@ const columnDefs = ref([
       if (params.node.rowPinned === 'bottom') {
         return '';
       }
-      return params.value;
+      // 使用内联样式的可编辑输入框
+      return `<div style="background-color: #fffbf0; padding: 0; height: 100%; width: 100%; display: flex; align-items: center;">
+        <input type="text" 
+               value="${params.value || ''}" 
+               placeholder="请输入合约名称"
+               style="width: 100%; height: 100%; border: 1px solid #d9d9d9; border-radius: 2px; outline: none; background: transparent; padding: 4px 6px; font-size: 14px; text-align: left;"
+               data-field="contractName" 
+               data-id="${params.data?.id}" />
+      </div>`;
     }
   },
   { 
@@ -275,10 +298,15 @@ const columnDefs = ref([
       if (params.node.rowPinned === 'bottom') {
         return '';
       }
-      const value = params.value;
-      const type = value === 'buy' ? '买入' : '卖出';
-      const className = getOrderTypeClass(value);
-      return `<div class="status-badge ${className}">${type}</div>`;
+      // 使用内联样式的可编辑下拉选择框
+      return `<div style="background-color: #fffbf0; padding: 0; height: 100%; width: 100%; display: flex; align-items: center;">
+        <select style="width: 100%; height: 100%; border: 1px solid #d9d9d9; border-radius: 2px; outline: none; background: #fffbf0; padding: 4px 6px; font-size: 14px; cursor: pointer;"
+                data-field="orderType" 
+                data-id="${params.data?.id}">
+          <option value="buy" ${(params.value === 'buy' || !params.value) ? 'selected' : ''}>买入</option>
+          <option value="sell" ${params.value === 'sell' ? 'selected' : ''}>卖出</option>
+        </select>
+      </div>`;
     }
   },
   { 
@@ -467,8 +495,64 @@ function onGridReady(params: any): void {
           openSplitTradeModal();
         }
       });
+      
+      // 添加可编辑单元格的事件监听器
+      gridElement.addEventListener('input', handleInputChange);
+      gridElement.addEventListener('change', handleInputChange);
+      gridElement.addEventListener('focus', handleFocusChange, true);
+      gridElement.addEventListener('blur', handleBlurChange, true);
     }
   });
+}
+
+// 处理input变化事件（实时更新数据）
+function handleInputChange(event: any) {
+  const target = event.target;
+  if (target && target.hasAttribute('data-field')) {
+    const field = target.getAttribute('data-field');
+    const id = target.getAttribute('data-id');
+    
+    // 根据字段类型处理值
+    let newValue: any;
+    if (field === 'repoRate') {
+      // 回购利率需要转换为小数（输入的是百分比）
+      newValue = parseFloat(target.value) / 100 || 0;
+    } else if (field === 'repoAmount') {
+      // 回购金额
+      newValue = parseFloat(target.value) || 0;
+    } else if (field === 'contractName') {
+      // 合约名称
+      newValue = target.value || '';
+    } else if (field === 'orderType') {
+      // 订单类型
+      newValue = target.value || 'buy';
+    }
+    
+    // 更新数据源
+    const result = dataStore.getResultById(id);
+    if (result && field) {
+      (result as any)[field] = newValue;
+      console.log(`Updated ${field} for ${id}:`, newValue);
+    }
+  }
+}
+
+// 处理聚焦事件
+function handleFocusChange(event: any) {
+  const target = event.target;
+  if (target && target.hasAttribute('data-field')) {
+    target.style.backgroundColor = '#fff';
+    target.style.borderColor = '#faad14';
+  }
+}
+
+// 处理失焦事件
+function handleBlurChange(event: any) {
+  const target = event.target;
+  if (target && target.hasAttribute('data-field')) {
+    target.style.backgroundColor = 'transparent';
+    target.style.borderColor = '#d9d9d9';
+  }
 }
 
 // 监听筛选条件变化
@@ -656,6 +740,93 @@ onMounted(() => {
       text-decoration: none !important;
     }
   }
+}
+
+/* 可编辑单元格中的select样式 */
+:deep(.editable-cell select.cell-input) {
+  width: 100% !important;
+  height: 100% !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 2px !important;
+  outline: none !important;
+  background: #fff !important;
+  padding: 4px 6px !important;
+  font-size: 14px !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  
+  &:focus {
+    border-color: #faad14 !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  
+  &:hover {
+    border-color: #faad14 !important;
+  }
+}
+
+/* 文本输入框样式调整 */
+:deep(.editable-cell input[type="text"].cell-input) {
+  text-align: left !important;
+}
+
+/* 数字输入框保持右对齐 */
+:deep(.editable-cell input[type="number"].cell-input) {
+  text-align: right !important;
+}
+
+/* 可编辑单元格样式 - 确保在询价结果表格中正确应用 */
+:deep(.ag-cell) {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+:deep(.ag-cell:has(.editable-cell)),
+:deep(.ag-cell-focus:has(.editable-cell)) {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+:deep(.editable-cell) {
+  background-color: #fffbf0 !important;
+  padding: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  border: none !important;
+  outline: none !important;
+}
+
+:deep(.editable-cell .cell-input) {
+  width: 100% !important;
+  height: 100% !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 2px !important;
+  outline: none !important;
+  background: transparent !important;
+  padding: 4px 6px !important;
+  font-size: 14px !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+:deep(.editable-cell .cell-input:focus) {
+  background-color: #fff !important;
+  border-color: #faad14 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+:deep(.editable-cell .cell-input:hover) {
+  border-color: #faad14 !important;
 }
 
 /* 右键菜单样式 - 设置合理的最小宽度和样式 */
