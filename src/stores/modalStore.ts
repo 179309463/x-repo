@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { reactive, toRefs } from 'vue';
+import { reactive, toRefs, ref, readonly } from 'vue';
 import type { ModalStoreState } from '../types';
 
 export const useModalStore = defineStore('modal', () => {
@@ -16,6 +16,9 @@ export const useModalStore = defineStore('modal', () => {
     isAddSubOrderModalOpen: false
   });
 
+  // 执行交易弹窗的默认复选框状态
+  const executeTradeDefaultSendQuote = ref(false);
+
   // 打开模态窗口的方法
   function openAnonymousPlanModal() {
     state.isAnonymousPlanModalOpen = true;
@@ -29,7 +32,10 @@ export const useModalStore = defineStore('modal', () => {
     state.isRiskCalculationModalOpen = true;
   }
 
-  function openExecuteTradeModal() {
+  function openExecuteTradeModal(defaultSendQuote = false) {
+    console.log('openExecuteTradeModal called with defaultSendQuote:', defaultSendQuote);
+    executeTradeDefaultSendQuote.value = defaultSendQuote;
+    console.log('executeTradeDefaultSendQuote.value set to:', executeTradeDefaultSendQuote.value);
     state.isExecuteTradeModalOpen = true;
   }
 
@@ -99,6 +105,7 @@ export const useModalStore = defineStore('modal', () => {
 
   return {
     ...toRefs(state),
+    executeTradeDefaultSendQuote,
     openAnonymousPlanModal,
     openFrozenBondsModal,
     openRiskCalculationModal,

@@ -40,6 +40,7 @@
         :suppressContextMenu="false"
         @cell-context-menu="onCellContextMenu"
         :pinnedBottomRowData="summaryRowData"
+        :overlayNoRowsTemplate="'<span style=&quot;font-size: 14px; color: #999;&quot;>暂无数据</span>'"
       />
     </div>
   </div>
@@ -561,6 +562,9 @@ function getContextMenuItems(params: any) {
 }
 
 function refreshData() {
+  // 清理所有缓存，重新开始
+  dataStore.clearAllCache();
+  
   // 随机生成1-2条新的待确认询价指令记录
   const newRecordsCount = Math.floor(Math.random() * 2) + 1; // 1-2条记录
   
@@ -575,13 +579,23 @@ function refreshData() {
     '易方达消费行业股票'
   ];
   
-  const traders = ['张三', '李四', '王五', '赵六', '孙七', '周八'];
+  // 根据"显示其他资金交易员"复选框状态决定交易员分配策略
+  const allTraders = ['张三', '李四', '王五', '赵六', '孙七', '周八'];
   
   for (let i = 0; i < newRecordsCount; i++) {
+    let selectedTrader = '张三'; // 默认是本人张三
+    
+    // 如果勾选了"显示其他资金交易员"，有30%概率是其他交易员，70%概率还是张三
+    if (filters.showOtherTraders && Math.random() < 0.3) {
+      // 从其他交易员中随机选择（排除张三）
+      const otherTraders = allTraders.filter(trader => trader !== '张三');
+      selectedTrader = otherTraders[Math.floor(Math.random() * otherTraders.length)];
+    }
+    
     const newOrder = {
       id: `new_${Date.now()}_${i}`,
       fundName: fundNames[Math.floor(Math.random() * fundNames.length)],
-      planConfirmStatus: 'unconfirmed' as const,
+      planConfirmStatus: 'unconfirmed' as const, // 刷新数据生成的记录肯定是待确认状态
       notInquiryAmount: Math.floor(Math.random() * 50000) + 10000, // 1万-6万
       inquiryAmount: 0,
       anonymousInquiryAmount: 0,
@@ -593,7 +607,7 @@ function refreshData() {
       pendingBondsAmount: 0,
       completedAmount: 0,
       t0MaxBorrowAmount: Math.floor(Math.random() * 100000) + 50000, // 5万-15万
-      trader: traders[Math.floor(Math.random() * traders.length)],
+      trader: selectedTrader,
       orderSequence: `XR${Date.now()}${String(i).padStart(3, '0')}`
     };
     
@@ -601,7 +615,8 @@ function refreshData() {
     dataStore.addNewOrder(newOrder);
   }
   
-  console.log(`已刷新并新增 ${newRecordsCount} 条询价指令记录`);
+  const traderScope = filters.showOtherTraders ? '主要是本人（张三），少量其他交易员' : '本人（张三）';
+  console.log(`已刷新并新增 ${newRecordsCount} 条待确认询价指令记录，交易员范围：${traderScope}`);
 }
 </script>
 

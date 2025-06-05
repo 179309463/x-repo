@@ -59,7 +59,7 @@
             <template #icon><check-circle-outlined /></template>
             执行交易
           </a-button>
-          <a-button type="primary" @click="openExecuteTradeModal">
+          <a-button type="primary" @click="openExecuteTradeWithQuoteModal">
             执行交易并发报价
           </a-button>
           <a-button @click="openSendQuoteModal">
@@ -398,7 +398,12 @@ function openRiskCalculationModal() {
 }
 
 function openExecuteTradeModal() {
-  modalStore.openExecuteTradeModal();
+  modalStore.openExecuteTradeModal(false);
+}
+
+function openExecuteTradeWithQuoteModal() {
+  console.log('openExecuteTradeWithQuoteModal called - setting default to true');
+  modalStore.openExecuteTradeModal(true);
 }
 
 function openSendQuoteModal() {

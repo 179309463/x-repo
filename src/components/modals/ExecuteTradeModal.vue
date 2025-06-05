@@ -7,92 +7,18 @@
     :footer="null"
   >
     <div class="modal-content">
-      <a-alert 
-        message="执行交易将确认成交意向并进行实际交易" 
-        type="info" 
-        show-icon 
-        class="mb-4"
-      />
-      
-      <!-- 交易参数 -->
-      <a-form :model="tradeForm" layout="horizontal" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
-        <a-form-item label="基金名称">
-          <a-input v-model:value="tradeForm.fundName" disabled />
-        </a-form-item>
-        
-        <a-form-item label="交易金额">
-          <a-input-number 
-            v-model:value="tradeForm.tradeAmount" 
-            :formatter="value => `${formatAmount(value)}`"
-            :parser="value => parseFloat(value.replace(/[^\d.]/g, ''))"
-            class="w-full"
-          />
-        </a-form-item>
-        
-        <a-form-item label="回购利率(%)">
-          <a-input-number 
-            v-model:value="tradeForm.repoRate" 
-            :step="0.0001"
-            :precision="4"
-            class="w-full"
-          />
-        </a-form-item>
-        
-        <a-form-item label="期限(天)">
-          <a-input-number v-model:value="tradeForm.period" :min="1" :max="365" class="w-full" />
-        </a-form-item>
-        
-        <a-form-item label="到期日">
-          <a-date-picker 
-            v-model:value="tradeForm.endDate" 
-            format="YYYY-MM-DD" 
-            class="w-full"
-            disabled
-          />
-        </a-form-item>
-        
-        <a-form-item label="交易对手">
-          <a-select v-model:value="tradeForm.counterparty" placeholder="请选择交易对手" class="w-full">
-            <a-select-option value="华泰证券">华泰证券</a-select-option>
-            <a-select-option value="中信证券">中信证券</a-select-option>
-            <a-select-option value="国泰君安">国泰君安</a-select-option>
-          </a-select>
-        </a-form-item>
-        
-        <a-form-item label="券类型偏好">
-          <a-checkbox-group v-model:value="tradeForm.bondPreferences">
-            <a-checkbox value="rate">利率债</a-checkbox>
-            <a-checkbox value="cd">存单</a-checkbox>
-            <a-checkbox value="local">地方债</a-checkbox>
-          </a-checkbox-group>
-        </a-form-item>
-        
-        <a-form-item label="备注">
-          <a-textarea v-model:value="tradeForm.remarks" :rows="2" />
-        </a-form-item>
-      </a-form>
-      
-      <!-- 交易摘要 -->
-      <a-card title="交易摘要" class="mb-4">
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <p>交易类型: <strong>{{ tradeForm.orderType === 'buy' ? '融资' : '融券' }}</strong></p>
-            <p>合约名称: <strong>{{ tradeForm.contractName }}</strong></p>
-            <p>交易对手: <strong>{{ tradeForm.counterparty }}</strong></p>
-          </a-col>
-          <a-col :span="12">
-            <p>交易金额: <strong class="amount-completed">{{ formatAmount(tradeForm.tradeAmount) }}</strong></p>
-            <p>回购利率: <strong>{{ (tradeForm.repoRate).toFixed(4) }}%</strong></p>
-            <p>期限/到期日: <strong>{{ tradeForm.period }}天 / {{ formatDate(tradeForm.endDate.toDate()) }}</strong></p>
-          </a-col>
-        </a-row>
-      </a-card>
+      <!-- 占位符内容 -->
+      <div class="placeholder-content">
+        <div class="placeholder-icon">🔧</div>
+        <h3 class="placeholder-title">执行交易功能</h3>
+        <p class="placeholder-text">此功能正在开发中，敬请期待...</p>
+      </div>
       
       <!-- 底部按钮 -->
       <div class="modal-footer">
         <a-space>
-          <a-button @click="handleCancel">取消</a-button>
           <a-checkbox v-model:checked="tradeForm.sendQuote">执行交易同时发送报价</a-checkbox>
+          <a-button @click="handleCancel">取消</a-button>
           <a-button type="primary" @click="handleExecute">
             执行交易
           </a-button>
@@ -103,69 +29,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import dayjs from 'dayjs';
+import { ref, computed, watch, nextTick, unref } from 'vue';
 import { useModalStore } from '../../stores/modalStore';
-import { useDataStore } from '../../stores/dataStore';
-import { formatAmount, formatDate } from '../../utils/formatters';
 
 const modalStore = useModalStore();
-const dataStore = useDataStore();
 
 const isOpen = computed(() => modalStore.isExecuteTradeModalOpen);
 
-// 选中的结果
-const selectedResultId = computed(() => {
-  return dataStore.selectedResultIds.length > 0 ? dataStore.selectedResultIds[0] : '';
-});
-
-const selectedResult = computed(() => {
-  return selectedResultId.value ? dataStore.getResultById(selectedResultId.value) : null;
-});
-
-// 交易表单数据
+// 简化的表单数据，只保留必要的字段
 const tradeForm = ref({
-  fundName: '',
-  tradeAmount: 0,
-  repoRate: 0,
-  period: 7,
-  endDate: dayjs().add(7, 'day'),
-  counterparty: '',
-  orderType: 'buy',
-  contractName: '交易所质押式回购',
-  bondPreferences: ['rate', 'cd'],
-  remarks: '',
   sendQuote: false
 });
 
-// 计算到期日
-function calculateEndDate(period: number) {
-  return dayjs().add(period, 'day');
-}
-
-// 初始化表单数据
-onMounted(() => {
-  if (selectedResult.value) {
-    tradeForm.value = {
-      fundName: selectedResult.value.fundName,
-      tradeAmount: selectedResult.value.dealAmount || selectedResult.value.repoAmount,
-      repoRate: selectedResult.value.repoRate * 100, // 转换为百分比
-      period: 7, // 默认期限
-      endDate: calculateEndDate(7),
-      counterparty: selectedResult.value.counterparty,
-      orderType: selectedResult.value.orderType,
-      contractName: selectedResult.value.contractName,
-      bondPreferences: ['rate', 'cd'],
-      remarks: '',
-      sendQuote: false
-    };
+// 监听弹窗打开，设置默认复选框状态
+watch(isOpen, (newValue) => {
+  console.log('isOpen changed to:', newValue);
+  if (newValue) {
+    // 使用 nextTick 确保状态已经更新
+    nextTick(() => {
+      const defaultValue = unref(modalStore.executeTradeDefaultSendQuote);
+      tradeForm.value.sendQuote = defaultValue;
+      console.log('设置复选框状态:', defaultValue);
+    });
   }
 });
 
-// 监听期限变化
-function updateEndDate() {
-  tradeForm.value.endDate = calculateEndDate(tradeForm.value.period);
-}
+// 也监听 executeTradeDefaultSendQuote 的变化
+watch(() => modalStore.executeTradeDefaultSendQuote, (newValue) => {
+  console.log('executeTradeDefaultSendQuote changed to:', newValue);
+  if (modalStore.isExecuteTradeModalOpen) {
+    tradeForm.value.sendQuote = unref(newValue);
+    console.log('直接设置复选框状态:', unref(newValue));
+  }
+}, { immediate: true });
 
 // 取消
 function handleCancel() {
@@ -186,17 +82,27 @@ function handleExecute() {
 
 <style lang="scss" scoped>
 .modal-content {
-  .mb-4 {
-    margin-bottom: 16px;
-  }
-  
-  .w-full {
-    width: 100%;
-  }
-  
-  .amount-completed {
-    color: $success-color;
-    font-weight: 500;
+  .placeholder-content {
+    text-align: center;
+    padding: 60px 20px;
+    
+    .placeholder-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    .placeholder-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1f2937;
+      margin-bottom: 8px;
+    }
+    
+    .placeholder-text {
+      color: #6b7280;
+      font-size: 14px;
+      margin: 0;
+    }
   }
   
   .modal-footer {
