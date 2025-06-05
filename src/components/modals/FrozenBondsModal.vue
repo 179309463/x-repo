@@ -146,10 +146,14 @@ const isOpen = computed(() => modalStore.isFrozenBondsModalOpen);
 const modalWidth = computed(() => {
   if (typeof window !== 'undefined') {
     const screenWidth = window.innerWidth;
-    if (screenWidth < 1024) {
+    if (screenWidth < 600) {
       return '95%';
+    } else if (screenWidth < 1024) {
+      return '90%';
+    } else if (screenWidth < 1400) {
+      return 800;
     }
-    return 800;
+    return 900;
   }
   return 800;
 });
@@ -644,13 +648,42 @@ function handleConfirm() {
   .fund-info-section {
     margin-bottom: 20px;
     
-    :deep(.ant-descriptions-item-label) {
-      white-space: nowrap !important;
-      min-width: auto !important;
-    }
-    
-    :deep(.ant-descriptions-item-content) {
-      white-space: nowrap !important;
+    :deep(.ant-descriptions) {
+      .ant-descriptions-item-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #333;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        min-width: 0 !important;
+        padding: 8px 12px !important;
+        word-break: break-all;
+      }
+      
+      .ant-descriptions-item-content {
+        font-size: 12px;
+        color: #666;
+        min-width: 0 !important;
+        padding: 8px 12px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        word-break: break-all;
+      }
+      
+      // 仅在非常小的屏幕上才稍微调整字体大小
+      @media (max-width: 480px) {
+        .ant-descriptions-item-label {
+          font-size: 11px !important;
+          padding: 6px 10px !important;
+        }
+        
+        .ant-descriptions-item-content {
+          font-size: 11px !important;
+          padding: 6px 10px !important;
+        }
+      }
     }
   }
   

@@ -24,8 +24,7 @@
             :columnDefs="tradeIntentColumns"
             :defaultColDef="defaultColDef"
             :suppressCellFocus="true"
-            rowSelection="single"
-            @selection-changed="handleIntentSelection"
+            @row-clicked="handleIntentRowClick"
             @grid-ready="onIntentGridReady"
           />
         </div>
@@ -91,6 +90,9 @@ const modalStore = useModalStore();
 
 const isOpen = computed(() => modalStore.isSubmitBondsModalOpen);
 
+// 选中的成交意向ID
+const selectedIntentId = ref<string | null>(null);
+
 // 响应式弹窗宽度
 const modalWidth = computed(() => {
   if (typeof window !== 'undefined') {
@@ -116,7 +118,8 @@ const tradeIntentData = ref([
     direction: '正逆回购',
     counterparty: '易分丹',
     dealDate: '2025-05-18',
-    maturityAmount: 10000.00
+    maturityAmount: 10000.00,
+    selected: false
   },
   {
     id: '2',
@@ -129,7 +132,8 @@ const tradeIntentData = ref([
     direction: '正逆回购',
     counterparty: '易分丹',
     dealDate: '2025-05-18',
-    maturityAmount: 10000.00
+    maturityAmount: 10000.00,
+    selected: false
   },
   {
     id: '3',
@@ -142,7 +146,8 @@ const tradeIntentData = ref([
     direction: '正逆回购',
     counterparty: '易分丹',
     dealDate: '2025-05-18',
-    maturityAmount: 10000.00
+    maturityAmount: 10000.00,
+    selected: false
   },
   {
     id: '4',
@@ -155,7 +160,8 @@ const tradeIntentData = ref([
     direction: '正逆回购',
     counterparty: '易分丹',
     dealDate: '2025-05-18',
-    maturityAmount: 10000.00
+    maturityAmount: 10000.00,
+    selected: false
   },
   {
     id: '5',
@@ -168,7 +174,8 @@ const tradeIntentData = ref([
     direction: '正逆回购',
     counterparty: '易分丹',
     dealDate: '2025-05-18',
-    maturityAmount: 10000.00
+    maturityAmount: 10000.00,
+    selected: false
   },
   {
     id: '6',
@@ -181,7 +188,8 @@ const tradeIntentData = ref([
     direction: '正逆回购',
     counterparty: '易分丹',
     dealDate: '2025-05-18',
-    maturityAmount: 10000.00
+    maturityAmount: 10000.00,
+    selected: false
   }
 ]);
 
@@ -194,8 +202,10 @@ const tradeIntentColumns = ref([
     maxWidth: 40,
     minWidth: 40,
     suppressSizeToFit: true,
-    checkboxSelection: true,
-    headerCheckboxSelection: false
+    cellRenderer: (params: any) => {
+      const isSelected = params.data.selected;
+      return `<input type="radio" name="tradeIntent" ${isSelected ? 'checked' : ''} style="margin: 0; cursor: pointer;" />`;
+    }
   },
   { headerName: '订单编号', field: 'orderNumber', width: 100, minWidth: 100 },
   { headerName: '成交序列号', field: 'serialNumber', width: 100, minWidth: 100 },
@@ -490,6 +500,24 @@ function onBondsGridReady(params: any) {
 
 function handleIntentSelection(event: any) {
   console.log('选择成交意向:', event.api.getSelectedRows());
+}
+
+function handleIntentRowClick(event: any) {
+  // 先取消所有选择
+  tradeIntentData.value.forEach(item => {
+    item.selected = false;
+  });
+  
+  // 选择当前行
+  const clickedRow = tradeIntentData.value.find(item => item.id === event.data.id);
+  if (clickedRow) {
+    clickedRow.selected = true;
+  }
+  
+  selectedIntentId.value = event.data.id;
+  
+  // 重新渲染单选按钮列
+  event.api.refreshCells({ columns: ['selection'] });
 }
 
 function handleBondsSelection(event: any) {
